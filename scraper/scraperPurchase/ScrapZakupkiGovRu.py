@@ -1,3 +1,4 @@
+import datetime
 from urllib2 import HTTPError
 
 from selenium import webdriver
@@ -42,15 +43,19 @@ class ScrapZakupkiGovRu:
                 d[vKey] = vValue
         return d
 
-    def readPurchaseFiles(self):
+    def readPurchaseFiles(self, purchaseId):
         # fullTextHTML = self.driver.page_source
         # open("file03.html", "w").write(fullTextHTML.encode('utf-8'))
         rv = []
         dataAs = self.driver.find_elements_by_xpath(
-            '//table[@id="notice-documents"]//table//td[@style="width: 100%"]')
+            '//table[@id="notice-documents"]//table//td[@style="width: 100%"]/a')
         for dA in dataAs:
-            pf = PurchaseFile(None, None, dA.get_attribute('href'), dA.text, dA.get_attribute('title'))
-            rv.append(pf)
+            url = dA.get_attribute('href')
+            title = dA.text
+            filename = dA.get_attribute('title')
+            if url != None and title != u'':
+                pf = PurchaseFile(purchaseId, None, url, title, filename)
+                rv.append(pf)
         return rv
 
     def scrap(self, dbSaver):
@@ -72,23 +77,29 @@ class ScrapZakupkiGovRu:
 
                 main_window = self.driver.current_window_handle
 
-                ActionChains(self.driver).key_down(Keys.CONTROL).click(orderA).key_up(Keys.CONTROL).perform()
-                self.driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.TAB)
+                if (datetime.datetime.now() - vPurchase._loadDate).days > 0:
+                    # do the following for purchases only once per day
+                    ActionChains(self.driver).key_down(Keys.CONTROL).click(orderA).key_up(Keys.CONTROL).perform()
+                    self.driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.TAB)
 
-                self.driver.switch_to_window(main_window)
+                    self.driver.switch_to_window(main_window)
 
-                purchaseMap = self.readPurchaseData()
-                # print "purchaseMap:", purchaseMap
-                self.dbSaver.storePurchaseData(vPurchase.purchaseId, purchaseMap)
+                    purchaseMap = self.readPurchaseData()
+                    # print "purchaseMap:", purchaseMap
+                    self.dbSaver.storePurchaseData(vPurchase.purchaseId, purchaseMap)
 
-                purchaseTab = self.driver.find_element_by_xpath(
-                    '//table[@class="contentTabsWrapper"]//td[@tab="PURCHASE_DOCS"]')
-                purchaseTab.click()
-                filesMap = self.readPurchaseFiles()
-                self.dbSaver.storePurchaseFiles(vPurchase.purchaseId, filesMap)
+                    purchaseTab = self.driver.find_element_by_xpath(
+                        '//table[@class="contentTabsWrapper"]//td[@tab="PURCHASE_DOCS"]')
+                    purchaseTab.click()
+                    filesList = self.readPurchaseFiles(vPurchase.purchaseId)
+                    print "filesList:", filesList
+                    self.dbSaver.storePurchaseFiles(vPurchase.purchaseId, filesList)
 
-                self.driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + 'w')
-                self.driver.switch_to_window(main_window)
+                    self.driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + 'w')
+                    self.driver.switch_to_window(main_window)
+                else:
+                    print "Object refreshed less than 1 day ago:", vPurchase
+                    print datetime.datetime.now(), vPurchase._loadDate, (datetime.datetime.now() - vPurchase._loadDate)
 
             nextLinks = self.driver.find_elements_by_xpath('//ul[@class="paging"]/li[@class="rightArrow"]/a')
             if len(nextLinks) > 0:

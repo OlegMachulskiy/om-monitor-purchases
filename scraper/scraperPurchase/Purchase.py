@@ -45,7 +45,10 @@ class PurchaseFile:
         rv = "<PurchaseFile:";
         rv += str(self.purchaseId) + ', ';
         rv += str(self.purchaseFileId) + ', ';
-        rv += self.url.encode('utf-8') + ', ';
-        rv += self.title.encode('utf-8') + ', ';
-        rv += self.filename.encode('utf-8') + '>';
+        if self.url != None:
+            rv += self.url.encode('utf-8') + ', ';
+        if self.title != None:
+            rv += self.title.encode('utf-8') + ', ';
+        if self.filename != None:
+            rv += self.filename.encode('utf-8') + '>';
         return rv
