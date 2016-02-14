@@ -14,7 +14,7 @@ CREATE TABLE tErrorLog (
 	loadDate     timestamp default now()
 );
 
-create table tPurchase (
+CREATE TABLE  tPurchase (
 	purchaseId numeric(36) NOT NULL, 
 	orderId	VARCHAR(36) NULL, 
 	orderDate date,
@@ -37,7 +37,7 @@ create table tPurchase (
 	PRIMARY KEY (purchaseId)
 );
 
-create table tOrganization (
+CREATE TABLE  tOrganization (
 	orgId numeric(36) NOT NULL, 
 	competence varchar(100) , /* Полномочия организации */
 	title VARCHAR(512) NULL, /* Полное наименование */
@@ -48,3 +48,5 @@ create table tOrganization (
 );
 
 
+--------------
+--    select * from tPurchase
