@@ -1,10 +1,7 @@
-import datetime
+import re
 from urllib2 import HTTPError
 
 from selenium import webdriver
-from selenium.webdriver import ActionChains
-from selenium.webdriver.common.keys import Keys
-import re
 
 from Purchase import *
 
@@ -15,8 +12,8 @@ class ScrapZakupkiGovRu:
 
     def initializeWebdriver(self):
         try:
-            self.driver = webdriver.Firefox()
-            # self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe")
+            # self.driver = webdriver.Firefox()
+            self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe")
 
             self.driver.get(self.scrapingUrl)
             open("file00.html", "w").write(unicode(self.driver.page_source).encode('utf-8'))
@@ -48,10 +45,10 @@ class ScrapZakupkiGovRu:
         m = re.search("\d", orderId)
         if m:
             return orderId[m.start():]
-            #print "Digit found at position %d" % m.start()
+            # print "Digit found at position %d" % m.start()
         else:
             return orderId
-            #print "No digit in that string"
+            # print "No digit in that string"
 
     def readPurchaseFiles(self, purchaseId):
         # fullTextHTML = self.driver.page_source
@@ -73,7 +70,7 @@ class ScrapZakupkiGovRu:
         print "Start scraping: ", self.scrapingUrl
         self.initializeWebdriver()
 
-        vContinue = True # becomes False when last page in pagination reached
+        vContinue = True  # becomes False when last page in pagination reached
 
         while vContinue:
             tenderTDs = self.driver.find_elements_by_xpath(
@@ -90,7 +87,6 @@ class ScrapZakupkiGovRu:
                 nextLinks[0].click()
             else:
                 vContinue = False
-
 
     def scrapOrderContent(self, dbSaver, vPurchase):
         # do the following for purchases only once per day
@@ -113,10 +109,36 @@ class ScrapZakupkiGovRu:
             print "filesList:", filesList
             self.dbSaver.storePurchaseFiles(vPurchase.purchaseId, filesList)
         else:
-            print "There's no documents tab here"
+            print "There's no PURCHASE_DOCS tab here:", vPurchase._url
 
-        # self.driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + 'w')
-        # self.driver.switch_to_window(main_window)
-        # else:
-        #     print "Object refreshed less than 1 day ago:", vPurchase
-        #     print datetime.datetime.now(), vPurchase._loadDate, (datetime.datetime.now() - vPurchase._loadDate)
+        resultsTab = self.driver.find_elements_by_xpath(
+            '//table[@class="contentTabsWrapper"]//td[@tab="SUPPLIER_RESULTS"]')
+        if len(resultsTab) > 0:
+            resultsTab[0].click()
+            contractTableTRs = self.driver.find_elements_by_xpath('//table[@id="contract"]/tbody/tr')
+            for cttr in contractTableTRs:
+                cttds = cttr.find_elements_by_xpath("td")
+                url = cttds[0].find_elements_by_xpath('a')[1].get_attribute("href")
+                purchaseId = vPurchase.purchaseId
+                contractNo = cttds[0].text
+                customerName = cttds[1].text
+                winnerName = cttds[2].text
+                priceT = cttds[3].text
+                pushishDateT = cttds[4].text
+                pcontr = PurchaseContract(purchaseId, url, contractNo, customerName, winnerName, priceT,
+                                          pushishDateT)
+                print "PurchaseContract:", pcontr
+                self.dbSaver.storePurchaseContract(pcontr)
+
+                # filesList = self.readPurchaseFiles(vPurchase.purchaseId)
+                # print "filesList:", filesList
+                # self.dbSaver.storePurchaseFiles(vPurchase.purchaseId, filesList)
+        else:
+            print "There's no SUPPLIER_RESULTS tab here:", vPurchase._url
+
+
+            # self.driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + 'w')
+            # self.driver.switch_to_window(main_window)
+            # else:
+            #     print "Object refreshed less than 1 day ago:", vPurchase
+            #     print datetime.datetime.now(), vPurchase._loadDate, (datetime.datetime.now() - vPurchase._loadDate)

@@ -52,3 +52,31 @@ class PurchaseFile:
         if self.filename != None:
             rv += self.filename.encode('utf-8') + '>';
         return rv
+
+
+class PurchaseContract:
+    def __init__(self, purchaseId, url, contractNo, customerName, winnerName, priceT, pushishDateT):
+        self.purchaseId = purchaseId
+        self.contractId = None
+        self.url = url
+        self.contractNo = contractNo
+        self.customerName = customerName
+        self.priceT = priceT
+        self.winnerName = winnerName
+        self.pushishDateT = pushishDateT
+
+    def __repr__(self):
+        rv = "<PurchaseContract:";
+        rv += str(self.purchaseId) + ', ';
+        rv += str(self.contractId) + ', ';
+        if self.url != None:
+            rv += self.url.encode('utf-8') + ', ';
+        if self.contractNo != None:
+            rv += self.contractNo.encode('utf-8') + ', ';
+        if self.customerName != None:
+            rv += self.customerName.encode('utf-8') + '>';
+        if self.winnerName != None:
+            rv += self.winnerName.encode('utf-8') + '>';
+        if self.pushishDateT != None:
+            rv += self.pushishDateT.encode('utf-8') + '>';
+        return rv

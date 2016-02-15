@@ -9,4 +9,5 @@ __all__ = ["DBSaver",
            "Purchase",
            "PurchaseFile",
            "ScrapZakupkiGovRu",
+           "PurchaseContract"
            ]

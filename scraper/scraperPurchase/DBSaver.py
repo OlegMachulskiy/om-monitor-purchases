@@ -1,4 +1,3 @@
-import sys
 import traceback
 from datetime import *
 
@@ -118,6 +117,36 @@ class DBSaver:
         finally:
             cur.close()
 
+    def storePurchaseContract(self, contract):
+        cur = self.conn.cursor()
+        try:
+
+            cur.execute(
+                """ SELECT purchaseContractId, purchaseId, url, customerName, _loadDate
+                FROM tPurchaseContracts WHERE purchaseId=%s and url=%s and customerName=%s """,
+                [contract.purchaseId, contract.url.encode('utf-8'), contract.customerName.encode('utf-8')])
+            res = cur.fetchall()
+            if len(res) < 1:
+                cur.execute("""select nextval('idGen')""")
+                purchaseContractId = cur.fetchone()[0]
+                cur.execute(
+                    """ INSERT INTO tPurchaseContracts
+                    (purchaseContractId, purchaseId, contractNo, url, customerName, winnerName, priceT, pushishDateT)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s) """,
+                    [purchaseContractId, contract.purchaseId, contract.contractNo.encode('utf-8'),
+                     contract.url.encode('utf-8'), contract.customerName.encode('utf-8'),
+                     contract.winnerName.encode('utf-8'), contract.priceT.encode('utf-8'),
+                     contract.pushishDateT.encode('utf-8')])
+            self.conn.commit()
+        # except Exception as ex:
+        #     traceback.print_tb(sys.exc_traceback)
+        #     traceback.print_last()
+        #     self.logErr("Exception for purchaseId:" + str(purchaseId), sys.exc_info())
+        #     self.conn.rollback()
+        #     raise NameError("Exception for purchaseId:" + str(purchaseId))
+        finally:
+            cur.close()
+
     def getQueryStrings(self):
         """
         :return: Dictionary Id->Text
@@ -161,7 +190,7 @@ class DBSaver:
         try:
             cur.execute(
                 """ SELECT purchaseId, orderId, _url, _loadDate FROM tPurchase WHERE lastRun is null or lastRun<=%s""",
-                [datetime.today() - timedelta(days=2)])
+                [datetime.today() - timedelta(days=3)])
 
             rv = []
             res = cur.fetchall()

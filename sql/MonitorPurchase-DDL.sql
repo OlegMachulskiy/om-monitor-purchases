@@ -2,11 +2,18 @@
 DROP SEQUENCE idGen ;
 CREATE SEQUENCE idGen START 100 ;
 
+DROP VIEW vPurchases;
+
+DROP TABLE tPurchase2Query;
 DROP TABLE tErrorLog;
 DROP TABLE tOrganization;
-DROP TABLE tPurchaseData;
+DROP TABLE tPurchaseRawData;-- DROP TABLE tPurchaseData;
 DROP TABLE tPurchaseFiles;
+DROP TABLE tPurchaseContracts;
+DROP TABLE tPurchaseDetails;
 DROP TABLE tPurchase ;
+DROP TABLE tMapping ;
+DROP TABLE tSourceQueries;
 	
 CREATE TABLE tErrorLog (
 	message VARCHAR(512) NULL, 
@@ -16,12 +23,39 @@ CREATE TABLE tErrorLog (
 	loadDate     timestamp default now()
 );
 
+CREATE TABLE  tSourceQueries (
+	queryId numeric(36) NOT NULL, 
+	qText 	varchar(512),
+	lastRun	timestamp ,
+	_loadDate  timestamp default now(),
+	PRIMARY KEY (queryId)
+);
+
+
 CREATE TABLE  tPurchase (
 	purchaseId numeric(36) NOT NULL, 
 	orderId	VARCHAR(36) NULL, 
+	lastRun	timestamp ,
+	_url	varchar(512),
+	_loadDate  timestamp default now(),
+	PRIMARY KEY (purchaseId)
+);
+
+
+CREATE TABLE tPurchase2Query (
+	purchaseId numeric(36) NOT NULL, 
+	queryId numeric(36) NOT NULL, 
+	_loadDate  timestamp default now(),
+	PRIMARY KEY (purchaseId, queryId),
+	FOREIGN KEY (purchaseId) REFERENCES tPurchase ON DELETE CASCADE,
+	FOREIGN KEY (queryId) REFERENCES tSourceQueries ON DELETE CASCADE
+);
+
+CREATE TABLE tPurchaseDetails (
+	purchaseId numeric(36) NOT NULL, 
 	orderDate date,
-	purchaseType VARCHAR(36) NULL, /* Способ определения поставщика  */
-	customer_orgId numeric(36), /* Закупку осуществляет */
+	purchaseType VARCHAR(512) NULL, /* Способ определения поставщика  */
+	customer_orgId numeric(512), /* Закупку осуществляет */
 	customerName varchar(512),
 	title	varchar(512), /* Наименование объекта закупки */
 	stage VARCHAR(36) , /* Этап закупки */
@@ -36,12 +70,12 @@ CREATE TABLE  tPurchase (
 	contractAmount NUMERIC(20,2), /* Начальная (максимальная) цена контракта */
 	contractAmountT varchar(36), /* Начальная (максимальная) цена контракта строкой */
 	contractCurrency VARCHAR(36) NULL, 
-	_url	varchar(512),
-	_loadDate  timestamp default now(),
-	PRIMARY KEY (purchaseId)
+	PRIMARY KEY (purchaseId), 
+	FOREIGN KEY (purchaseId) REFERENCES tPurchase ON DELETE CASCADE
 );
 
-CREATE TABLE  tPurchaseData (
+
+CREATE TABLE  tPurchaseRawData (
 	purchaseId numeric(36) NOT NULL, 
 	keyName	VARCHAR(512) NOT NULL, 
 	textValue	text,
@@ -62,6 +96,19 @@ CREATE TABLE  tPurchaseFiles (
 	FOREIGN KEY (purchaseId) REFERENCES tPurchase ON DELETE CASCADE
 );
 
+CREATE TABLE  tPurchaseContracts (
+	purchaseContractId numeric(36) NOT NULL, 
+	purchaseId numeric(36) NOT NULL, 
+	url	VARCHAR(512) NOT NULL, 
+	contractNo VARCHAR(128) ,
+	customerName	VARCHAR(512), 
+	winnerName VARCHAR(512), 
+	priceT VARCHAR(128) ,
+	pushishDateT VARCHAR(128) ,
+	_loadDate  timestamp default now(),
+	PRIMARY KEY (purchaseContractId),
+	FOREIGN KEY (purchaseId) REFERENCES tPurchase ON DELETE CASCADE
+);
 
 
 CREATE TABLE  tOrganization (
@@ -92,9 +139,24 @@ insert into tMapping (title, tag) values ('Телефон','contact_phone');
 insert into tMapping (title, tag) values ('Начальная (максимальная) цена контракта','purchase_amount');
 insert into tMapping (title, tag) values ('Организация, осуществляющая закупку','purchase_customer');
 insert into tMapping (title, tag) values ('Закупку осуществляет','purchase_customer');
+insert into tMapping (title, tag) values ('Этап закупки','purchase_stage');
+insert into tMapping (title, tag) values ('Способ размещения закупки','purchase_type');
+insert into tMapping (title, tag) values ('Способ определения поставщика (подрядчика, исполнителя)','purchase_type');
 
 
+delete from  tSourceQueries;
 
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Жилищник Гагаринского');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Управа Гагаринского');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Проспект Вернадского');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Улица Косыгина');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Воробьевы горы');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Ломоносовский проспект');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Район Раменки');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Жилищник района Академический');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Ленинский проспект');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'ЮЗАО');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'дворец пионеров');
 
 --------------
 --    select * from tPurchase
@@ -102,3 +164,18 @@ insert into tMapping (title, tag) values ('Закупку осуществляе
 --    select * from tPurchaseFiles
 -- select keyName, count(*) from tPurchaseData group by keyName
 -- select * from tErrorLog
+
+CREATE OR REPLACE VIEW vPurchases AS
+SELECT pp.purchaseId,
+       orderId,
+       customerName,
+       title,
+       purchaseType,
+       stage ,
+       contractAmountT,
+       responsible,
+       _url,
+       _loaddate
+FROM tPurchase pp
+JOIN tPurchaseDetails ppd ON pp.purchaseId = ppd.purchaseId
+WHERE ppd.title IS NOT NULL
