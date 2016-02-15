@@ -63,10 +63,10 @@ class DBSaver:
             p._loadDate = loadDate
             p._url = url
             return p
-        except:
-            traceback.print_tb(sys.exc_traceback)
-            self.logErr("No Purchase: " + orderId, sys.exc_info())
-            raise NameError("No Purchase: " + orderId)
+        # except:
+        #     traceback.print_tb(sys.exc_traceback)
+        #     self.logErr("No Purchase: " + orderId, sys.exc_info())
+        #     raise NameError("No Purchase: " + orderId)
         finally:
             cur.close()
 
@@ -85,11 +85,11 @@ class DBSaver:
                     [purchaseId, vKey, vValue, vValue500])
 
             self.conn.commit()
-        except:
-            traceback.print_tb(sys.exc_traceback)
-            self.logErr("PurchaseData Exception for purchaseId:" + str(purchaseId), sys.exc_info())
-            self.conn.rollback()
-            raise NameError("PurchaseData Exception for purchaseId:" + str(purchaseId))
+        # except:
+        #     traceback.print_tb(sys.exc_traceback)
+        #     self.logErr("PurchaseData Exception for purchaseId:" + str(purchaseId), sys.exc_info())
+        #     self.conn.rollback()
+        #     raise NameError("PurchaseData Exception for purchaseId:" + str(purchaseId))
         finally:
             cur.close()
 
@@ -109,11 +109,11 @@ class DBSaver:
                         [purchaseFileId, purchaseId, prcf.url.encode('utf-8'), prcf.title.encode('utf-8'),
                          prcf.filename.encode('utf-8')])
             self.conn.commit()
-        except Exception as ex:
-            traceback.print_tb(sys.exc_traceback)
-            traceback.print_last()
-            self.logErr("Exception for purchaseId:" + str(purchaseId), sys.exc_info())
-            self.conn.rollback()
-            raise NameError("Exception for purchaseId:" + str(purchaseId))
+        # except Exception as ex:
+        #     traceback.print_tb(sys.exc_traceback)
+        #     traceback.print_last()
+        #     self.logErr("Exception for purchaseId:" + str(purchaseId), sys.exc_info())
+        #     self.conn.rollback()
+        #     raise NameError("Exception for purchaseId:" + str(purchaseId))
         finally:
             cur.close()

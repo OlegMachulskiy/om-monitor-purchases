@@ -88,12 +88,15 @@ class ScrapZakupkiGovRu:
                     # print "purchaseMap:", purchaseMap
                     self.dbSaver.storePurchaseData(vPurchase.purchaseId, purchaseMap)
 
-                    purchaseTab = self.driver.find_element_by_xpath(
+                    purchaseTabs = self.driver.find_elements_by_xpath(
                         '//table[@class="contentTabsWrapper"]//td[@tab="PURCHASE_DOCS"]')
-                    purchaseTab.click()
-                    filesList = self.readPurchaseFiles(vPurchase.purchaseId)
-                    print "filesList:", filesList
-                    self.dbSaver.storePurchaseFiles(vPurchase.purchaseId, filesList)
+                    if len(purchaseTabs) > 0:
+                        purchaseTabs[0].click()
+                        filesList = self.readPurchaseFiles(vPurchase.purchaseId)
+                        print "filesList:", filesList
+                        self.dbSaver.storePurchaseFiles(vPurchase.purchaseId, filesList)
+                    else:
+                        print "There's no documents tab here"
 
                     self.driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + 'w')
                     self.driver.switch_to_window(main_window)
