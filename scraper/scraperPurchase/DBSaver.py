@@ -73,14 +73,14 @@ class DBSaver:
     def storePurchaseData(self, purchaseId, dataDict):
         cur = self.conn.cursor()
         try:
-            cur.execute("""DELETE FROM tPurchaseData where purchaseId=%s """, [purchaseId])
+            cur.execute("""DELETE FROM tPurchaseRawData where purchaseId=%s """, [purchaseId])
 
             for key, value in dataDict.iteritems():
                 vKey = key[:500].encode('utf-8')
                 vValue = value.encode('utf-8')
                 vValue500 = value[:500].encode('utf-8')
                 cur.execute(
-                    """INSERT INTO tPurchaseData (purchaseId, keyName, textValue, textValue512 )
+                    """INSERT INTO tPurchaseRawData (purchaseId, keyName, textValue, textValue512 )
                         VALUES (%s, %s, %s, %s) """,
                     [purchaseId, vKey, vValue, vValue500])
 
@@ -115,5 +115,64 @@ class DBSaver:
         #     self.logErr("Exception for purchaseId:" + str(purchaseId), sys.exc_info())
         #     self.conn.rollback()
         #     raise NameError("Exception for purchaseId:" + str(purchaseId))
+        finally:
+            cur.close()
+
+    def getQueryStrings(self):
+        """
+        :return: Dictionary Id->Text
+        """
+        cur = self.conn.cursor()
+        try:
+            cur.execute(
+                """ SELECT queryId, qText FROM tSourceQueries WHERE lastRun is null or lastRun<=%s""",
+                [datetime.today() - timedelta(days=1)])
+
+            rv = {}
+            res = cur.fetchall()
+            for row in res:
+                rv[row[0]] = row[1]
+            return rv
+        finally:
+            cur.close()
+
+    def touchQuery(self, queryId):
+        cur = self.conn.cursor()
+        try:
+            cur.execute(
+                """ UPDATE tSourceQueries SET lastRun=%s WHERE  queryId=%s """,
+                [datetime.today(), queryId])
+            self.conn.commit()
+        finally:
+            cur.close()
+
+    def touchPurchase(self, purchaseId):
+        cur = self.conn.cursor()
+        try:
+            cur.execute(
+                """ UPDATE tPurchase SET lastRun=%s WHERE  purchaseId=%s """,
+                [datetime.today(), purchaseId])
+            self.conn.commit()
+        finally:
+            cur.close()
+
+    def getPurchases(self):
+        cur = self.conn.cursor()
+        try:
+            cur.execute(
+                """ SELECT purchaseId, orderId, _url, _loadDate FROM tPurchase WHERE lastRun is null or lastRun<=%s""",
+                [datetime.today() - timedelta(days=2)])
+
+            rv = []
+            res = cur.fetchall()
+            for row in res:
+                vPur = Purchase()
+                vPur.purchaseId = row[0]
+                vPur.orderId = row[1]
+                vPur._url = row[2]
+                vPur._loadDate = row[3]
+                rv.append(vPur)
+
+            return rv
         finally:
             cur.close()
