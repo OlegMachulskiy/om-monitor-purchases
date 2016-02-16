@@ -2,8 +2,9 @@
 DROP SEQUENCE idGen ;
 CREATE SEQUENCE idGen START 100 ;
 
-DROP VIEW vPurchases;
+--DROP VIEW vPurchases;
 
+DROP TABLE tPurchaseTags;
 DROP TABLE tPurchase2Query;
 DROP TABLE tErrorLog;
 DROP TABLE tOrganization;
@@ -63,8 +64,12 @@ CREATE TABLE tPurchaseDetails (
 	respons_email VARCHAR(128) NULL, /* Адрес электронной почты  */
 	respons_phone VARCHAR(128) NULL, /* Номер контактного телефона  */
 	contractMgr VARCHAR(128) NULL, /* Информация о контрактной службе, контрактном управляющем  */
+	requestPublished timestamp, /* дата публикации */
+	requestPublishedT varchar(36), /* дата публикации */
 	submitStart timestamp, /* Дата и время начала подачи котировочных заявок */
+	submitStartT varchar(36), /* Дата и время начала подачи котировочных заявок */
 	submitFinish timestamp, /* Дата и время окончания подачи котировочных заявок */
+	submitFinishT varchar(36), /* Дата и время окончания подачи котировочных заявок */
 	submitPlace VARCHAR(512) NULL, /* Место подачи котировочных заявок */
 	submitConditions TEXT NULL, /* Порядок подачи котировочных заявок */
 	contractAmount NUMERIC(20,2), /* Начальная (максимальная) цена контракта */
@@ -73,7 +78,6 @@ CREATE TABLE tPurchaseDetails (
 	PRIMARY KEY (purchaseId), 
 	FOREIGN KEY (purchaseId) REFERENCES tPurchase ON DELETE CASCADE
 );
-
 
 CREATE TABLE  tPurchaseRawData (
 	purchaseId numeric(36) NOT NULL, 
@@ -127,6 +131,14 @@ create table tMapping (
 	primary key (title,tag)
 	);
 
+create table tPurchaseTags (
+	purchaseId numeric(36) NOT NULL, 
+	tagLabel 	varchar(36) NOT NULL, 
+	PRIMARY KEY (purchaseId, tagLabel),
+	FOREIGN KEY (purchaseId) REFERENCES tPurchase ON DELETE CASCADE
+);
+
+
 delete from tMapping;
 insert into tMapping (title, tag) values ('Наименование закупки','purchase_title');
 insert into tMapping (title, tag) values ('Наименование объекта закупки','purchase_title');
@@ -142,7 +154,15 @@ insert into tMapping (title, tag) values ('Закупку осуществляе
 insert into tMapping (title, tag) values ('Этап закупки','purchase_stage');
 insert into tMapping (title, tag) values ('Способ размещения закупки','purchase_type');
 insert into tMapping (title, tag) values ('Способ определения поставщика (подрядчика, исполнителя)','purchase_type');
-
+insert into tMapping (title, tag) values ('Дата и время начала подачи котировочных заявок','submit_start');
+insert into tMapping (title, tag) values ('Дата и время начала подачи заявок','submit_start');
+insert into tMapping (title, tag) values ('Дата и время начала подачи заявок (по местному времени)','submit_start');
+insert into tMapping (title, tag) values ('Дата и время окончания подачи котировочных заявок','submit_end');
+insert into tMapping (title, tag) values ('Дата и время окончания подачи заявок','submit_end');
+insert into tMapping (title, tag) values ('Дата и время окончания подачи заявок (по местному времени заказчика)','submit_end');
+insert into tMapping (title, tag) values ('Дата и время окончания подачи заявок (по местному времени)','submit_end');
+insert into tMapping (title, tag) values ('Дата размещения текущей редакции извещения','request_published');
+insert into tMapping (title, tag) values ('Дата размещения извещения','request_published');
 
 delete from  tSourceQueries;
 
@@ -165,17 +185,3 @@ INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'двор
 -- select keyName, count(*) from tPurchaseData group by keyName
 -- select * from tErrorLog
 
-CREATE OR REPLACE VIEW vPurchases AS
-SELECT pp.purchaseId,
-       orderId,
-       customerName,
-       title,
-       purchaseType,
-       stage ,
-       contractAmountT,
-       responsible,
-       _url,
-       _loaddate
-FROM tPurchase pp
-JOIN tPurchaseDetails ppd ON pp.purchaseId = ppd.purchaseId
-WHERE ppd.title IS NOT NULL

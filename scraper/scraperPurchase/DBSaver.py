@@ -4,6 +4,7 @@ from datetime import *
 import psycopg2
 
 from Purchase import *
+from PurchasesPostETL import *
 
 
 class DBSaver:
@@ -205,3 +206,6 @@ class DBSaver:
             return rv
         finally:
             cur.close()
+
+    def postETL(self):
+        PurchasesPostETL(self.conn).runPostETL()
