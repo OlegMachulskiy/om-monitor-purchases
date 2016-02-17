@@ -177,6 +177,13 @@ INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Жили
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Ленинский проспект');
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'ЮЗАО');
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'дворец пионеров');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'природопользования');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Университетский');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Вавилова');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Ляпунова');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Бардина');
+
+
 
 --------------
 --    select * from tPurchase

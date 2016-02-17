@@ -78,7 +78,7 @@ class PurchasesPostETL:
                 where pd.purchaseId=p.purchaseId limit 1)
             """
             ,
-            u"""
+            """
             insert into tPurchaseTags (purchaseId, tagLabel)
             select purchaseId, 'Гагаринский' from tPurchaseDetails pd
             where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
@@ -86,7 +86,7 @@ class PurchasesPostETL:
             and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Гагаринский');
                 """
             ,
-            u"""
+            """
             insert into tPurchaseTags (purchaseId, tagLabel)
             select purchaseId, 'ВоробьевыГоры' from tPurchaseDetails pd
             where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
@@ -94,12 +94,65 @@ class PurchasesPostETL:
             and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='ВоробьевыГоры');
                 """
             ,
-            u"""
+            """
             insert into tPurchaseTags (purchaseId, tagLabel)
             select purchaseId, 'Раменки' from tPurchaseDetails pd
             where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
                 (lower(title) like '%рамен%' OR lower(customername) like '%рамен%')
             and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Раменки');
+            """
+            ,
+            """
+            insert into tPurchaseTags (purchaseId, tagLabel)
+            select purchaseId, 'Якутск' from tPurchaseDetails pd
+            where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+                (lower(title) like '%якут%' OR lower(customername) like '%якут%')
+            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Якутск');
+            """,
+            """
+            insert into tPurchaseTags (purchaseId, tagLabel)
+            select purchaseId, 'Красноярск' from tPurchaseDetails pd
+            where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+            (lower(title) like '%красноярск%' OR lower(customername) like '%красноярск%')
+            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Красноярск');
+            """,
+            """
+            insert into tPurchaseTags (purchaseId, tagLabel)
+            select purchaseId, 'Челябинск' from tPurchaseDetails pd
+            where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+            (lower(title) like '%челябинск%' OR lower(customername) like '%челябинск%')
+            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Челябинск');
+            """
+            ,
+            """
+            insert into tPurchaseTags (purchaseId, tagLabel)
+            select purchaseId, 'МарийЭл' from tPurchaseDetails pd
+            where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+            (lower(title) like '%марий%эл%' OR lower(customername) like '%марий%эл%' OR lower(title) like '%йошкар%ола%' OR lower(customername) like '%йошкар%ола%')
+            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='МарийЭл');
+            """
+            ,
+            """
+            insert into tPurchaseTags (purchaseId, tagLabel)
+            select purchaseId, 'Калининград' from tPurchaseDetails pd
+            where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+            (lower(title) like '%калининград%' OR lower(customername) like '%калининград%')
+            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Калининград');
+            """,
+            """
+            insert into tPurchaseTags (purchaseId, tagLabel)
+            select purchaseId, 'Воронеж' from tPurchaseDetails pd
+            where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+            (lower(title) like '%воронеж%' OR lower(customername) like '%воронеж%')
+            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Воронеж');
+            """
+            ,
+            """
+            insert into tPurchaseTags (purchaseId, tagLabel)
+            select purchaseId, 'Курск' from tPurchaseDetails pd
+            where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+            (lower(title) like '%курск%' OR lower(customername) like '%курск%')
+            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Курск');
             """
         ]
 

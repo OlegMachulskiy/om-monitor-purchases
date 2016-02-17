@@ -1,5 +1,7 @@
 import traceback
+import datetime
 from datetime import *
+
 
 import psycopg2
 
@@ -51,7 +53,7 @@ class DBSaver:
                 cur.execute("""insert into tPurchase (purchaseId, orderId, _url) values
                 (%s,%s,%s) """, (purchaseId, orderId[:35], url))
                 print "created Purchase:", purchaseId, orderId, url
-                loadDate = datetime(1900, 1, 1)
+                loadDate = datetime.datetime(1900, 1, 1)
                 self.conn.commit()
             else:
                 purchaseId = purchases[0][0]
@@ -156,7 +158,7 @@ class DBSaver:
         try:
             cur.execute(
                 """ SELECT queryId, qText FROM tSourceQueries WHERE lastRun is null or lastRun<=%s""",
-                [datetime.today() - timedelta(days=1)])
+                [datetime.datetime.today() - timedelta(days=1)])
 
             rv = {}
             res = cur.fetchall()
@@ -171,7 +173,7 @@ class DBSaver:
         try:
             cur.execute(
                 """ UPDATE tSourceQueries SET lastRun=%s WHERE  queryId=%s """,
-                [datetime.today(), queryId])
+                [datetime.datetime.today(), queryId])
             self.conn.commit()
         finally:
             cur.close()
@@ -181,7 +183,7 @@ class DBSaver:
         try:
             cur.execute(
                 """ UPDATE tPurchase SET lastRun=%s WHERE  purchaseId=%s """,
-                [datetime.today(), purchaseId])
+                [datetime.datetime.today(), purchaseId])
             self.conn.commit()
         finally:
             cur.close()
@@ -191,7 +193,7 @@ class DBSaver:
         try:
             cur.execute(
                 """ SELECT purchaseId, orderId, _url, _loadDate FROM tPurchase WHERE lastRun is null or lastRun<=%s""",
-                [datetime.today() - timedelta(days=3)])
+                [datetime.datetime.today() - timedelta(days=3)])
 
             rv = []
             res = cur.fetchall()

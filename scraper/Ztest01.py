@@ -19,3 +19,6 @@ while len(purchases)>0:
 
     scraper.scrapOrderContent(dbs, purchase)
     dbs.touchPurchase(purchase.purchaseId)
+
+    if len(purchases)%10==0:
+        print "Left in queue:", len(purchases)
