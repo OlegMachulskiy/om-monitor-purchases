@@ -154,6 +154,15 @@ class PurchasesPostETL:
             (lower(title) like '%курск%' OR lower(customername) like '%курск%')
             and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Курск');
             """
+            ,
+            """
+            insert into tPurchaseTags (purchaseId, tagLabel)
+            select purchaseId, 'Университетский' from tPurchaseDetails pd
+            where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
+            (lower(title) like '%университетск%' OR lower(customername) like '%университетск%') AND
+            (lower(title) like '%просп%' OR lower(customername) like '%просп%')
+            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Университетский');
+            """
         ]
 
         cur = self.conn.cursor()

@@ -71,21 +71,20 @@ SELECT pp.purchaseId,
        purchaseType,
        stage ,
        contractAmount,
-       contractAmountT,
-       requestPublished,
-       requestPublishedT,
-       submitStart,
-       submitStartT,
-       submitFinish,
-       submitFinishT,
-       responsible,
        _url,
-       _loaddate
+       _loaddate,
+       requestPublished,
+       submitStart,
+       submitFinish,
+       responsible,
+       contractAmountT,
+       requestPublishedT,
+       submitStartT,
+       submitFinishT
 FROM tPurchase pp
 JOIN tPurchaseDetails ppd ON pp.purchaseId = ppd.purchaseId
 WHERE ppd.title IS NOT NULL
-
-
+and ppd.purchaseId in (select purchaseId from tPurchaseTags WHERE tagLabel in ('Гагаринский', 'ВоробьевыГоры', 'Университетский'))
 		""")
         # select * from vArtList order by loadDate desc
         rows = cur.fetchall()
@@ -105,7 +104,7 @@ WHERE ppd.title IS NOT NULL
 select * from tPurchase vp
 	join tPurchaseContracts pcc on vp.purchaseId = pcc.purchaseId
 	join tPurchaseDetails ppd on vp.purchaseId =ppd.purchaseId
-where  vp.purchaseId in (select purchaseId from tPurchaseTags WHERE tagLabel in ('Гагаринский', 'ВоробьевыГоры'))
+where  vp.purchaseId in (select purchaseId from tPurchaseTags WHERE tagLabel in ('Гагаринский', 'ВоробьевыГоры', 'Университетский'))
 order by pcc.winnerName
 		""")
         rows = cur.fetchall()

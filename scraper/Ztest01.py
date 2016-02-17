@@ -3,22 +3,23 @@ import urllib
 
 from scraperPurchase import *
 
-
-
 dbs = DBSaver()
-purchases = dbs.getPurchases()
-print purchases
 
-scraper = ScrapZakupkiGovRu('http://www.yandex.ru')
-scraper.initializeWebdriver()
+depths = [0, 1]
+for dep in depths:
+    purchases = dbs.getPurchases(dep)
+    print purchases
 
-while len(purchases)>0:
-    idx = random.randint(0, len(purchases) - 1)
-    purchase = purchases[idx]
-    purchases.pop(idx)
+    scraper = ScrapZakupkiGovRu('http://www.yandex.ru')
+    scraper.initializeWebdriver()
 
-    scraper.scrapOrderContent(dbs, purchase)
-    dbs.touchPurchase(purchase.purchaseId)
+    while len(purchases) > 0:
+        idx = random.randint(0, len(purchases) - 1)
+        purchase = purchases[idx]
+        purchases.pop(idx)
 
-    if len(purchases)%10==0:
-        print "Left in queue:", len(purchases)
+        scraper.scrapOrderContent(dbs, purchase)
+        dbs.touchPurchase(purchase.purchaseId)
+
+        if len(purchases) % 10 == 0:
+            print "Left in queue:", len(purchases), " for ", dep

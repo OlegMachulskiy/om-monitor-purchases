@@ -2,7 +2,6 @@ import traceback
 import datetime
 from datetime import *
 
-
 import psycopg2
 
 from Purchase import *
@@ -188,12 +187,15 @@ class DBSaver:
         finally:
             cur.close()
 
-    def getPurchases(self):
+    def getPurchases(self, depth=0):
         cur = self.conn.cursor()
         try:
-            cur.execute(
-                """ SELECT purchaseId, orderId, _url, _loadDate FROM tPurchase WHERE lastRun is null or lastRun<=%s""",
-                [datetime.datetime.today() - timedelta(days=3)])
+            sql = """ SELECT purchaseId, orderId, _url, _loadDate FROM tPurchase WHERE lastRun is null """
+            prms = []
+            if depth >= 1:
+                sql += """ or lastRun<=%s """
+                prms.append(datetime.datetime.today() - timedelta(days=3))
+            cur.execute(sql, prms)
 
             rv = []
             res = cur.fetchall()
