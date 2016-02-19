@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+import traceback
 
 
 class PurchasesPostETL:
@@ -10,7 +11,8 @@ class PurchasesPostETL:
     def runPostETL(self):
         self.runQueriesList0()
         self.parseUnparsedDates()
-        self.parseUnparsedNumbers()
+        self.parsePurchaseDetailNumbers()
+        self.parsePurchaseContractsNumbers()
 
     def runQueriesList0(self):
         sqls = [
@@ -208,8 +210,9 @@ class PurchasesPostETL:
             self.conn.commit()
         finally:
             cur.close()
+            print "DONE:parseUnparsedDates"
 
-    def parseUnparsedNumbers(self):
+    def parsePurchaseDetailNumbers(self):
         cur = self.conn.cursor()
         try:
             cur.execute(
@@ -217,10 +220,38 @@ class PurchasesPostETL:
             vals = cur.fetchall()
             for data_row in vals:
                 if data_row[1] != None and len(data_row[1]) > 1:
-                    parsedNum = float(data_row[1].replace(' ', '').replace(',', '.'))
+                    parsedNum  = 0
+                    try:
+                        parsedNum = float(data_row[1].replace(' ', '').replace(',', '.'))
+                    except Exception as ex:
+                        print "parsePurchaseDetailNumbers:failure for ", data_row[1]
+                        #traceback.print_tb(ex)
                     cur.execute('update tPurchaseDetails set contractAmount=%s where purchaseId=%s',
                                 [parsedNum, data_row[0]])
 
             self.conn.commit()
         finally:
             cur.close()
+            print "DONE:parsePurchaseDetailNumbers"
+
+    def parsePurchaseContractsNumbers(self):
+        cur = self.conn.cursor()
+        try:
+            cur.execute(
+                'select purchaseContractId, priceT from tPurchaseContracts where (price is null or price<=0) and priceT is not null ')
+            vals = cur.fetchall()
+            for data_row in vals:
+                if data_row[1] != None and len(data_row[1]) > 1:
+                    parsedNum  = -1
+                    try:
+                        parsedNum = float(data_row[1].replace(' Российский рубль', '').replace(' ', '').replace(',', '.'))
+                    except Exception as ex:
+                        print "parsePurchaseContractsNumbers:failure for ", data_row[1]
+                        #traceback.print_tb(ex)
+                    cur.execute('update tPurchaseContracts set price=%s where purchaseContractId=%s',
+                                [parsedNum, data_row[0]])
+
+            self.conn.commit()
+        finally:
+            cur.close()
+            print "DONE:parsePurchaseContractsNumbers"

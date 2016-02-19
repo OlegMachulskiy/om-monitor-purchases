@@ -61,9 +61,8 @@ ORDER BY numErrors DESC,
     def writeMainSheet(self, cur, wb):
         rowCount = 0
         ws = wb.active  # create_sheet()
-        ws.title = "Articles"
+        ws.title = "Tenders"
         cur.execute("""
-
 SELECT pp.purchaseId,
        orderId,
        customerName,
@@ -101,11 +100,28 @@ and ppd.purchaseId in (select purchaseId from tPurchaseTags WHERE tagLabel in ('
         ws = wb.create_sheet()
         ws.title = "Local Winners"
         cur.execute("""
-select * from tPurchase vp
-	join tPurchaseContracts pcc on vp.purchaseId = pcc.purchaseId
-	join tPurchaseDetails ppd on vp.purchaseId =ppd.purchaseId
-where  vp.purchaseId in (select purchaseId from tPurchaseTags WHERE tagLabel in ('Гагаринский', 'ВоробьевыГоры', 'Университетский'))
-order by pcc.winnerName
+SELECT
+       ppd.customerName,
+       title,
+       winnerName,
+       purchaseType,
+       stage ,
+       contractAmount as Tender_Amount,
+       price as Contract_Price,
+       priceT,
+       _url,
+       pp._loaddate,
+       requestPublished,
+       submitStart,
+       submitFinish,
+       responsible,
+       pp.purchaseId,
+       orderId
+FROM tPurchase pp
+JOIN tPurchaseDetails ppd ON pp.purchaseId = ppd.purchaseId
+LEFT JOIN tPurchaseContracts pcc on  pp.purchaseId = pcc.purchaseId
+WHERE ppd.title IS NOT NULL
+and ppd.purchaseId in (select purchaseId from tPurchaseTags WHERE tagLabel in ('Гагаринский', 'ВоробьевыГоры', 'Университетский'))
 		""")
         rows = cur.fetchall()
         ws.append([desc[0] for desc in cur.description])

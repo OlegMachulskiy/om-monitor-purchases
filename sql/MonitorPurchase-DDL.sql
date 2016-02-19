@@ -182,6 +182,10 @@ INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Унив
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Вавилова');
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Ляпунова');
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Бардина');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Москва противогололедн');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Москва благоустройств');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Москва озеленени');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Москва храм');
 
 
 
