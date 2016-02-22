@@ -5,184 +5,201 @@ import traceback
 
 
 class PurchasesPostETL:
+    sqls0 = [
+        """
+        insert into tPurchaseDetails (purchaseId) 	(select purchaseId from  tPurchase tp	where not exists (select * from tPurchaseDetails  tpd1 where tpd1.purchaseId = tp.purchaseId))
+        """
+        ,
+        """
+        update tPurchaseDetails p
+        set title = (
+            select textValue512
+            from tPurchaseRawData pd join tMapping mp
+            on pd.keyName=mp.title and mp.tag='purchase_title'
+            where pd.purchaseId=p.purchaseId),
+        responsible = (
+            select textValue512
+            from tPurchaseRawData pd join tMapping mp
+            on pd.keyName=mp.title and mp.tag='contact_person'
+            where pd.purchaseId=p.purchaseId),
+        contractAmountT = (
+            select textValue512
+            from tPurchaseRawData pd join tMapping mp
+            on pd.keyName=mp.title and mp.tag='purchase_amount'
+            where pd.purchaseId=p.purchaseId),
+        customerName = (
+            select textValue512
+            from tPurchaseRawData pd join tMapping mp
+            on pd.keyName=mp.title and mp.tag='purchase_customer'
+            where pd.purchaseId=p.purchaseId limit 1),
+        stage = (
+            select textValue512
+            from tPurchaseRawData pd join tMapping mp
+            on pd.keyName=mp.title and mp.tag='purchase_stage'
+            where pd.purchaseId=p.purchaseId limit 1),
+        purchaseType = (
+            select textValue512
+            from tPurchaseRawData pd join tMapping mp
+            on pd.keyName=mp.title and mp.tag='purchase_type'
+            where pd.purchaseId=p.purchaseId limit 1)
+        """
+        ,
+        """
+        update tPurchaseDetails p  set
+        submitStartT = (
+            select textValue512
+            from tPurchaseRawData pd join tMapping mp
+            on pd.keyName like mp.title||'%' and mp.tag='submit_start'
+            where pd.purchaseId=p.purchaseId limit 1)
+        """
+        ,
+        """
+        update tPurchaseDetails p  set
+        submitFinishT = (
+            select textValue512
+            from tPurchaseRawData pd join tMapping mp
+            on pd.keyName like mp.title||'%' and mp.tag='submit_end'
+            where pd.purchaseId=p.purchaseId limit 1)
+        """
+        ,
+        """
+        update tPurchaseDetails p  set
+        requestPublishedT = (
+            select textValue512
+            from tPurchaseRawData pd join tMapping mp
+            on pd.keyName like mp.title||'%' and mp.tag='request_published'
+            where pd.purchaseId=p.purchaseId limit 1)
+        """
+        ,
+        """
+        insert into tPurchaseTags (purchaseId, tagLabel)
+        select purchaseId, 'Гагаринский' from tPurchaseDetails pd
+        where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
+            (lower(title) like '%гагаринск%' OR lower(customername) like '%гагаринск%')
+        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Гагаринский');
+            """
+        ,
+        """
+        insert into tPurchaseTags (purchaseId, tagLabel)
+        select purchaseId, 'ВоробьевыГоры' from tPurchaseDetails pd
+        where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
+            (lower(title) like '%вороб%' OR lower(customername) like '%вороб%')
+        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='ВоробьевыГоры');
+            """
+        ,
+        """
+        insert into tPurchaseTags (purchaseId, tagLabel)
+        select purchaseId, 'Раменки' from tPurchaseDetails pd
+        where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
+            (lower(title) like '%рамен%' OR lower(customername) like '%рамен%')
+        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Раменки');
+        """
+        ,
+        """
+        insert into tPurchaseTags (purchaseId, tagLabel)
+        select purchaseId, 'Якутск' from tPurchaseDetails pd
+        where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+            (lower(title) like '%якут%' OR lower(customername) like '%якут%')
+        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Якутск');
+        """,
+        """
+        insert into tPurchaseTags (purchaseId, tagLabel)
+        select purchaseId, 'Красноярск' from tPurchaseDetails pd
+        where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+        (lower(title) like '%красноярск%' OR lower(customername) like '%красноярск%')
+        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Красноярск');
+        """,
+        """
+        insert into tPurchaseTags (purchaseId, tagLabel)
+        select purchaseId, 'Челябинск' from tPurchaseDetails pd
+        where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+        (lower(title) like '%челябинск%' OR lower(customername) like '%челябинск%')
+        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Челябинск');
+        """
+        ,
+        """
+        insert into tPurchaseTags (purchaseId, tagLabel)
+        select purchaseId, 'МарийЭл' from tPurchaseDetails pd
+        where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+        (lower(title) like '%марий%эл%' OR lower(customername) like '%марий%эл%' OR lower(title) like '%йошкар%ола%' OR lower(customername) like '%йошкар%ола%')
+        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='МарийЭл');
+        """
+        ,
+        """
+        insert into tPurchaseTags (purchaseId, tagLabel)
+        select purchaseId, 'Калининград' from tPurchaseDetails pd
+        where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+        (lower(title) like '%калининград%' OR lower(customername) like '%калининград%')
+        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Калининград');
+        """,
+        """
+        insert into tPurchaseTags (purchaseId, tagLabel)
+        select purchaseId, 'Воронеж' from tPurchaseDetails pd
+        where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+        (lower(title) like '%воронеж%' OR lower(customername) like '%воронеж%')
+        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Воронеж');
+        """
+        ,
+        """
+        insert into tPurchaseTags (purchaseId, tagLabel)
+        select purchaseId, 'Курск' from tPurchaseDetails pd
+        where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+        (lower(title) like '%курск%' OR lower(customername) like '%курск%')
+        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Курск');
+        """
+        ,
+        """
+        insert into tPurchaseTags (purchaseId, tagLabel)
+        select purchaseId, 'Университетский' from tPurchaseDetails pd
+        where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
+        (lower(title) like '%университетск%' OR lower(customername) like '%университетск%') AND
+        (lower(title) like '%просп%' OR lower(customername) like '%просп%')
+        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Университетский');
+        """
+        ,
+        """
+        insert into tPurchaseTags (purchaseId, tagLabel)
+        select purchaseId, 'Академический' from tPurchaseDetails pd
+        where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
+        (lower(title) like '%академическ%' OR lower(customername) like '%академическ%')
+        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Академический');
+        """
+    ]
+
+    sqls1 = [
+        """
+        update tPurchaseContracts p
+        set winnerINN = (
+            select textValue512
+            from tContractRawData crd join tMapping mp
+            on crd.purchaseContractId=p.purchaseContractId and keyName='participantInfoTable:ИНН:' limit 1)
+        """
+        ,
+        """
+        update tPurchaseContracts p
+        set contractStatus = (
+            select textValue512
+            from tContractRawData crd join tMapping mp
+            on crd.purchaseContractId=p.purchaseContractId and keyName='"Статус контракта"' limit 1)
+        """
+        ,
+        """
+        insert into tOrganization (orgId, inn)
+        (select nextval('idGen'), winnerINN from  tPurchaseContracts tpc where not exists (select * from tOrganization  tpd1 where tpd1.inn = tpc.winnerINN) and winnerINN is not null)
+        """
+    ]
+
     def __init__(self, conn):
         self.conn = conn
 
     def runPostETL(self):
-        self.runQueriesList0()
+        self.runQueriesList0(self.sqls0)
+        self.runQueriesList0(self.sqls1)
         self.parseUnparsedDates()
         self.parsePurchaseDetailNumbers()
         self.parsePurchaseContractsNumbers()
 
-    def runQueriesList0(self):
-        sqls = [
-            """   insert into tPurchaseDetails (purchaseId) 	(select purchaseId from  tPurchase tp	where not exists (select * from tPurchaseDetails  tpd1 where tpd1.purchaseId = tp.purchaseId))
-            """
-            ,
-            """
-            update tPurchaseDetails p
-            set title = (
-                select textValue512
-                from tPurchaseRawData pd join tMapping mp
-                on pd.keyName=mp.title and mp.tag='purchase_title'
-                where pd.purchaseId=p.purchaseId),
-            responsible = (
-                select textValue512
-                from tPurchaseRawData pd join tMapping mp
-                on pd.keyName=mp.title and mp.tag='contact_person'
-                where pd.purchaseId=p.purchaseId),
-            contractAmountT = (
-                select textValue512
-                from tPurchaseRawData pd join tMapping mp
-                on pd.keyName=mp.title and mp.tag='purchase_amount'
-                where pd.purchaseId=p.purchaseId),
-            customerName = (
-                select textValue512
-                from tPurchaseRawData pd join tMapping mp
-                on pd.keyName=mp.title and mp.tag='purchase_customer'
-                where pd.purchaseId=p.purchaseId limit 1),
-            stage = (
-                select textValue512
-                from tPurchaseRawData pd join tMapping mp
-                on pd.keyName=mp.title and mp.tag='purchase_stage'
-                where pd.purchaseId=p.purchaseId limit 1),
-            purchaseType = (
-                select textValue512
-                from tPurchaseRawData pd join tMapping mp
-                on pd.keyName=mp.title and mp.tag='purchase_type'
-                where pd.purchaseId=p.purchaseId limit 1)
-            """
-            ,
-            """
-            update tPurchaseDetails p  set
-            submitStartT = (
-                select textValue512
-                from tPurchaseRawData pd join tMapping mp
-                on pd.keyName like mp.title||'%' and mp.tag='submit_start'
-                where pd.purchaseId=p.purchaseId limit 1)
-            """
-            ,
-            """
-            update tPurchaseDetails p  set
-            submitFinishT = (
-                select textValue512
-                from tPurchaseRawData pd join tMapping mp
-                on pd.keyName like mp.title||'%' and mp.tag='submit_end'
-                where pd.purchaseId=p.purchaseId limit 1)
-            """
-            ,
-            """
-            update tPurchaseDetails p  set
-            requestPublishedT = (
-                select textValue512
-                from tPurchaseRawData pd join tMapping mp
-                on pd.keyName like mp.title||'%' and mp.tag='request_published'
-                where pd.purchaseId=p.purchaseId limit 1)
-            """
-            ,
-            """
-            insert into tPurchaseTags (purchaseId, tagLabel)
-            select purchaseId, 'Гагаринский' from tPurchaseDetails pd
-            where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
-                (lower(title) like '%гагаринск%' OR lower(customername) like '%гагаринск%')
-            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Гагаринский');
-                """
-            ,
-            """
-            insert into tPurchaseTags (purchaseId, tagLabel)
-            select purchaseId, 'ВоробьевыГоры' from tPurchaseDetails pd
-            where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
-                (lower(title) like '%вороб%' OR lower(customername) like '%вороб%')
-            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='ВоробьевыГоры');
-                """
-            ,
-            """
-            insert into tPurchaseTags (purchaseId, tagLabel)
-            select purchaseId, 'Раменки' from tPurchaseDetails pd
-            where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
-                (lower(title) like '%рамен%' OR lower(customername) like '%рамен%')
-            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Раменки');
-            """
-            ,
-            """
-            insert into tPurchaseTags (purchaseId, tagLabel)
-            select purchaseId, 'Якутск' from tPurchaseDetails pd
-            where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
-                (lower(title) like '%якут%' OR lower(customername) like '%якут%')
-            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Якутск');
-            """,
-            """
-            insert into tPurchaseTags (purchaseId, tagLabel)
-            select purchaseId, 'Красноярск' from tPurchaseDetails pd
-            where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
-            (lower(title) like '%красноярск%' OR lower(customername) like '%красноярск%')
-            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Красноярск');
-            """,
-            """
-            insert into tPurchaseTags (purchaseId, tagLabel)
-            select purchaseId, 'Челябинск' from tPurchaseDetails pd
-            where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
-            (lower(title) like '%челябинск%' OR lower(customername) like '%челябинск%')
-            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Челябинск');
-            """
-            ,
-            """
-            insert into tPurchaseTags (purchaseId, tagLabel)
-            select purchaseId, 'МарийЭл' from tPurchaseDetails pd
-            where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
-            (lower(title) like '%марий%эл%' OR lower(customername) like '%марий%эл%' OR lower(title) like '%йошкар%ола%' OR lower(customername) like '%йошкар%ола%')
-            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='МарийЭл');
-            """
-            ,
-            """
-            insert into tPurchaseTags (purchaseId, tagLabel)
-            select purchaseId, 'Калининград' from tPurchaseDetails pd
-            where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
-            (lower(title) like '%калининград%' OR lower(customername) like '%калининград%')
-            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Калининград');
-            """,
-            """
-            insert into tPurchaseTags (purchaseId, tagLabel)
-            select purchaseId, 'Воронеж' from tPurchaseDetails pd
-            where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
-            (lower(title) like '%воронеж%' OR lower(customername) like '%воронеж%')
-            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Воронеж');
-            """
-            ,
-            """
-            insert into tPurchaseTags (purchaseId, tagLabel)
-            select purchaseId, 'Курск' from tPurchaseDetails pd
-            where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
-            (lower(title) like '%курск%' OR lower(customername) like '%курск%')
-            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Курск');
-            """
-            ,
-            """
-            insert into tPurchaseTags (purchaseId, tagLabel)
-            select purchaseId, 'Университетский' from tPurchaseDetails pd
-            where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
-            (lower(title) like '%университетск%' OR lower(customername) like '%университетск%') AND
-            (lower(title) like '%просп%' OR lower(customername) like '%просп%')
-            and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Университетский');
-            """
-            ,
-            """
-            update tPurchaseContracts p
-            set winnerINN = (
-                select textValue512
-                from tContractRawData crd join tMapping mp
-                on crd.purchaseContractId=p.purchaseContractId and keyName='participantInfoTable:ИНН:' limit 1)
-            """
-            ,
-            """
-            update tPurchaseContracts p
-            set contractStatus = (
-                select textValue512
-                from tContractRawData crd join tMapping mp
-                on crd.purchaseContractId=p.purchaseContractId and keyName='"Статус контракта"' limit 1)
-            """
-        ]
-
+    def runQueriesList0(self, sqls):
         cur = self.conn.cursor()
         try:
             for sql in sqls:

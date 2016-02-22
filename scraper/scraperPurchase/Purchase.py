@@ -66,17 +66,36 @@ class PurchaseContract:
         self.pushishDateT = pushishDateT
 
     def __repr__(self):
-        rv = "<PurchaseContract:";
-        rv += str(self.purchaseId) + ', ';
-        rv += str(self.purchaseContractId) + ', ';
+        rv = "<PurchaseContract:"
+        rv += str(self.purchaseId) + ', '
+        rv += str(self.purchaseContractId) + ', '
         if self.url != None:
-            rv += self.url + ', ';
-        if self.contractNo != None:
-            rv += self.contractNo + ', ';
-        if self.customerName != None:
-            rv += self.customerName + '>';
-        if self.winnerName != None:
-            rv += self.winnerName + '>';
-        if self.pushishDateT != None:
-            rv += self.pushishDateT + '>';
+            rv += (self.url) + ', '
+        # if self.contractNo != None:
+        #     rv += (self.contractNo) + ', '
+        # if self.customerName != None:
+        #     rv += (self.customerName) + ','
+        # if self.winnerName != None:
+        #     rv += (self.winnerName) + ','
+        # if self.pushishDateT != None:
+        #     rv += (self.pushishDateT) + '>'
+        return rv.encode('utf-8')
+
+
+class Organization:
+    def __init__(self):
+        self.orgId = None
+        self.inn = None
+        self.title = None
+        self.url_sbis = None
+
+    def __repr__(self):
+        rv = "<Organization:";
+        rv += str(self.orgId) + ', ';
+        if self.inn != None:
+            rv += self.inn + ', ';
+        if self.title != None:
+            rv += self.title + ', ';
+        if self.url_sbis != None:
+            rv += self.url_sbis + '>';
         return rv

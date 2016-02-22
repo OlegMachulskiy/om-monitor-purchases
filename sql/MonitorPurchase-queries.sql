@@ -188,3 +188,30 @@ and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchase
     
 select * from tPurchaseDetails where purchaseId not in  (select purchaseId from tPurchaseTags WHERE tagLabel in ('Якутск', 'Красноярск', 'Челябинск', 'МарийЭл'))
 and lower(customerName) not like '%моск%'
+
+
+select * from tPurchaseContracts cnt join tContractRawData cdd on cnt.purchaseContractId = cdd.purchaseContractId order by 1, keyName
+
+select * from tPurchaseContracts  where winnerInn is not Null
+
+
+
+update tPurchaseContracts p
+set winnerINN = (
+	select textValue512
+	from tContractRawData crd join tMapping mp
+	on crd.purchaseContractId=p.purchaseContractId and keyName='participantInfoTable:ИНН:' limit 1)
+
+
+update tPurchaseContracts p
+set contractStatus = (
+	select textValue512
+	from tContractRawData crd join tMapping mp
+	on crd.purchaseContractId=p.purchaseContractId and keyName='"Статус контракта"' limit 1)
+
+select * from tOrganization
+
+
+select distinct winnerINN from tPurchaseContracts
+insert into tPurchaseDetails (purchaseId) 	(select purchaseId from  tPurchase tp	where not exists (select * from tPurchaseDetails  tpd1 where tpd1.purchaseId = tp.purchaseId))
+

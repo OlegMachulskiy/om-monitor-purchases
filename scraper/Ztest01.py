@@ -1,25 +1,57 @@
 import random
 import urllib
+import threading
 
 from scraperPurchase import *
 
+thread_lock = threading.Lock()
+
+
+class WorkerThread(threading.Thread):
+    def __init__(self, queryItems):
+        threading.Thread.__init__(self)
+        self.queryItems = queryItems
+
+    def run(self):
+        # with(thread_lock):
+        self.scraper = ScrapZakupkiGovRu('http://www.ya.ru')
+        self.scraper.initializeWebdriver()
+        self.dbSaver = DBSaver()
+
+        doRun = True
+
+        while doRun:
+            scrapingItem = None
+            with(thread_lock):
+                if len(self.queryItems) > 0:
+                    idx = random.randint(0, len(self.queryItems) - 1)
+                    scrapingItem = self.queryItems[idx]
+                    self.queryItems.pop(idx)
+                else:
+                    doRun = False
+                if len(self.queryItems) % 10 == 0:
+                    print "Left in queue:", len(self.queryItems)
+
+            if scrapingItem != None:
+                self.scraper.scrapOrderContent(self.dbSaver, scrapingItem)
+                self.dbSaver.touchPurchase(scrapingItem.purchaseId)
+
+
 dbs = DBSaver()
 
-depths = [0, 1]
+depths = [1]
 for dep in depths:
     purchases = dbs.getPurchases(dep)
-    print purchases
+    print purchases[:32]
 
-    scraper = ScrapZakupkiGovRu('http://www.yandex.ru')
-    scraper.initializeWebdriver()
+    threads = []
+    for i in range(0, 8):
+        threads.append(WorkerThread(purchases))
 
-    while len(purchases) > 0:
-        idx = random.randint(0, len(purchases) - 1)
-        purchase = purchases[idx]
-        purchases.pop(idx)
+    print threads
 
-        scraper.scrapOrderContent(dbs, purchase)
-        dbs.touchPurchase(purchase.purchaseId)
+    for thread in threads:
+        thread.start()
 
-        if len(purchases) % 10 == 0:
-            print "Left in queue:", len(purchases), " for ", dep
+    for thread in threads:
+        thread.join()

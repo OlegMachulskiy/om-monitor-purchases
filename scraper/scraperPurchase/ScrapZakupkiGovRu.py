@@ -6,6 +6,8 @@ from selenium import webdriver
 from Purchase import *
 from PageParserPurchaseRequest import *
 from PageParserContract import *
+from OrganizationFinder import *
+from ProxyFactory import *
 
 
 class ScrapZakupkiGovRu:
@@ -14,8 +16,9 @@ class ScrapZakupkiGovRu:
 
     def initializeWebdriver(self):
         try:
-            #self.driver = webdriver.Firefox()
-            self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe")
+            # self.driver = webdriver.Firefox()
+            rndProxy = ["--proxy=" + ProxyFactory().getRandomProxy()]
+            self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe", service_args=rndProxy)
 
             self.driver.get(self.scrapingUrl)
             open("file00.html", "w").write(unicode(self.driver.page_source).encode('utf-8'))
@@ -23,7 +26,7 @@ class ScrapZakupkiGovRu:
             print(e)
             raise (e)
         else:
-            print("Created webDriver for: " + self.scrapingUrl)
+            print "Created webDriver for:" , self.scrapingUrl, rndProxy
 
     def __del__(self):
         if self.driver != None:
@@ -38,11 +41,11 @@ class ScrapZakupkiGovRu:
             return orderId
             # print "No digit in that string"
 
-    def scrapHeaders(self, dbSaver, queryId):
+    def scrapHeaders(self, dbSaver, queryId, scrapingUrl):
         self.dbSaver = dbSaver
-        print "Start scraping: ", self.scrapingUrl
-        self.initializeWebdriver()
+        print "Start scraping: ", queryId
 
+        self.driver.get(scrapingUrl)
         vContinue = True  # becomes False when last page in pagination reached
 
         while vContinue:
@@ -57,6 +60,7 @@ class ScrapZakupkiGovRu:
 
             nextLinks = self.driver.find_elements_by_xpath('//ul[@class="paging"]/li[@class="rightArrow"]/a')
             if len(nextLinks) > 0:
+                print '  Jump next page', queryId
                 nextLinks[0].click()
             else:
                 vContinue = False
@@ -68,3 +72,7 @@ class ScrapZakupkiGovRu:
     def scrapPurchaseContract(self, dbSaver, purchContr):
         ppr = PageParserContract(dbSaver, self.driver)
         ppr.scrapContract(purchContr)
+
+    def lookupOrganizationInfo(self, dbSaver, vOrg):
+        orgf = OrganizationFinder(dbSaver, self.driver)
+        orgf.lookupOrganizationInfo(vOrg)

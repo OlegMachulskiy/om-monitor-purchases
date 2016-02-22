@@ -57,7 +57,7 @@ class DBSaver:
             else:
                 purchaseId = purchases[0][0]
                 loadDate = purchases[0][3]
-                print "Purchase exists:", purchaseId, orderId, url, loadDate
+                #print "Purchase exists:", purchaseId, orderId, url, loadDate
             p = Purchase()
             p.purchaseId = purchaseId
             p.orderId = orderId
@@ -164,7 +164,7 @@ class DBSaver:
 
     def getQueryStrings(self):
         """
-        :return: Dictionary Id->Text
+        :return: Array [Id,Text]
         """
         cur = self.conn.cursor()
         try:
@@ -172,10 +172,10 @@ class DBSaver:
                 """ SELECT queryId, qText FROM tSourceQueries WHERE lastRun is null or lastRun<=%s""",
                 [datetime.datetime.today() - timedelta(days=1)])
 
-            rv = {}
+            rv = []
             res = cur.fetchall()
             for row in res:
-                rv[row[0]] = row[1]
+                rv.append([row[0], row[1]])
             return rv
         finally:
             cur.close()
@@ -272,6 +272,29 @@ class DBSaver:
         finally:
             cur.close()
 
+    def getOrganizations(self):
+        """
+        :return:
+        """
+        cur = self.conn.cursor()
+        try:
+            sql = """ SELECT orgId, inn, title, url_sbis, _loadDate  FROM tOrganization  WHERE inn is not null and (title is NULL or url_sbis is null) """
+            cur.execute(sql)
+
+            rv = []
+            res = cur.fetchall()
+            for row in res:
+                vOrg = Organization()
+                vOrg.orgId = row[0]
+                vOrg.inn = row[1]
+                vOrg.title = row[2]
+                vOrg.url_sbis = row[3]
+                vOrg._loadDate = row[4]
+                rv.append(vOrg)
+
+            return rv
+        finally:
+            cur.close()
+
     def postETL(self):
         PurchasesPostETL(self.conn).runPostETL()
-
