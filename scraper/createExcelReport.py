@@ -16,12 +16,19 @@ class CreateExcelReport:
         self.dbs.postETL()
         cur = self.dbs.conn.cursor()
         wb = Workbook()
-        rc = self.writeMainSheet(cur, wb)
+
+        rc = self.writeGagarinskiySheet(cur, wb)
         print "writeMainSheet: DONE", rc
+
         rc = self.writeLocalWinnersSheet(cur, wb)
         print "writeLocalWinnersSheet: DONE", rc
+
+        rc = self.writeMoscowWinnersSheet(cur, wb)
+        print "writeMoscowWinnersSheet: DONE", rc
+
         rc = self.writeErrorsSheet(cur, wb)
         print "writeErrorsSheet: DONE", rc
+
         # Save the file
         wb.save("purchases.xlsx")
         cur.close()
@@ -58,10 +65,10 @@ ORDER BY numErrors DESC,
         ws.auto_filter.add_filter_column(0, ['Fatal*'], False)
         return rowCount
 
-    def writeMainSheet(self, cur, wb):
+    def writeGagarinskiySheet(self, cur, wb):
         rowCount = 0
         ws = wb.active  # create_sheet()
-        ws.title = "Tenders"
+        ws.title = "Gagarinskiy"
         cur.execute("""
 SELECT pp.purchaseId,
        orderId,
@@ -71,6 +78,7 @@ SELECT pp.purchaseId,
        stage ,
        contractAmount,
        _url,
+       to_char( coalesce(submitFinish, submitStart, requestPublished), 'YYYY-mm') as SomeDate,
        _loaddate,
        requestPublished,
        submitStart,
@@ -104,12 +112,15 @@ SELECT
        ppd.customerName,
        title,
        winnerName,
+       winnerINN,
        purchaseType,
        stage ,
        contractAmount as Tender_Amount,
        price as Contract_Price,
        priceT,
        _url,
+       to_char( coalesce(submitFinish, submitStart, requestPublished), 'YYYY-mm') as SomeDate,
+       contractStatus,
        pp._loaddate,
        requestPublished,
        submitStart,
@@ -134,7 +145,46 @@ and ppd.purchaseId in (select purchaseId from tPurchaseTags WHERE tagLabel in ('
         ws.auto_filter.add_filter_column(0, ['Fatal*'], False)
         return rowCount
 
+    def writeMoscowWinnersSheet(self, cur, wb):
+        rowCount = 0
+        ws = wb.create_sheet()
+        ws.title = "Moscow Winners"
+        cur.execute("""
+SELECT
+       ppd.customerName,
+       title,
+       winnerName,
+       purchaseType,
+       stage ,
+       contractAmount as Tender_Amount,
+       price as Contract_Price,
+       _url,
+       to_char( coalesce(submitFinish, submitStart, requestPublished), 'YYYY-mm') as SomeDate,
+       pp._loaddate,
+       requestPublished,
+       submitStart,
+       submitFinish,
+       responsible,
+       pp.purchaseId,
+       orderId,
+       priceT as Contract_Price_Text
+FROM tPurchase pp
+JOIN tPurchaseDetails ppd ON pp.purchaseId = ppd.purchaseId
+LEFT JOIN tPurchaseContracts pcc on  pp.purchaseId = pcc.purchaseId
+WHERE lower(ppd.title) like '%москв%' OR lower(ppd.customerName) like '%москв%'
+
+		""")
+        rows = cur.fetchall()
+        ws.append([desc[0] for desc in cur.description])
+        for row in rows:
+            # Rows can also be appended
+            ws.append(row)
+            rowCount += 1
+
+        ws.auto_filter.ref = "A:Z"
+        ws.auto_filter.add_filter_column(0, ['Fatal*'], False)
+        return rowCount
+
 
 a = CreateExcelReport()
-
 a.writeExcel()

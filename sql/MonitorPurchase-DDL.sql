@@ -4,6 +4,7 @@ CREATE SEQUENCE idGen START 100 ;
 
 --DROP VIEW vPurchases;
 
+DROP TABLE tContractRawData;
 DROP TABLE tPurchaseTags;
 DROP TABLE tPurchase2Query;
 DROP TABLE tErrorLog;
@@ -36,7 +37,7 @@ CREATE TABLE  tSourceQueries (
 CREATE TABLE  tPurchase (
 	purchaseId numeric(36) NOT NULL, 
 	orderId	VARCHAR(36) NULL, 
-	lastRun	timestamp ,
+	lastUpdate timestamp ,
 	_url	varchar(512),
 	_loadDate  timestamp default now(),
 	PRIMARY KEY (purchaseId)
@@ -109,10 +110,24 @@ CREATE TABLE  tPurchaseContracts (
 	winnerName VARCHAR(512), 
 	priceT VARCHAR(128) ,
 	pushishDateT VARCHAR(128) ,
+	winnerINN VARCHAR(36), 
+	contractStatus VARCHAR(36), 
+	lastUpdate timestamp ,
 	_loadDate  timestamp default now(),
 	PRIMARY KEY (purchaseContractId),
 	FOREIGN KEY (purchaseId) REFERENCES tPurchase ON DELETE CASCADE
 );
+
+CREATE TABLE  tContractRawData (
+	purchaseContractId numeric(36) NOT NULL, 
+	keyName	VARCHAR(512) NOT NULL, 
+	textValue	text,
+	textValue512	varchar(512),
+	_loadDate  timestamp default now(),
+	PRIMARY KEY (purchaseContractId, keyName),
+	FOREIGN KEY (purchaseContractId) REFERENCES tPurchaseContracts ON DELETE CASCADE
+);
+
 
 
 CREATE TABLE  tOrganization (

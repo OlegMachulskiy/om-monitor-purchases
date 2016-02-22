@@ -165,14 +165,30 @@ class PurchasesPostETL:
             (lower(title) like '%просп%' OR lower(customername) like '%просп%')
             and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Университетский');
             """
+            ,
+            """
+            update tPurchaseContracts p
+            set winnerINN = (
+                select textValue512
+                from tContractRawData crd join tMapping mp
+                on crd.purchaseContractId=p.purchaseContractId and keyName='participantInfoTable:ИНН:' limit 1)
+            """
+            ,
+            """
+            update tPurchaseContracts p
+            set contractStatus = (
+                select textValue512
+                from tContractRawData crd join tMapping mp
+                on crd.purchaseContractId=p.purchaseContractId and keyName='"Статус контракта"' limit 1)
+            """
         ]
 
         cur = self.conn.cursor()
         try:
             for sql in sqls:
                 cur.execute(sql)
-                print "DONE: " + sql.replace('\n', ' ').replace('\r', '').replace('\t', '') \
-                    .replace('    ', ' ').replace('   ', ' ').replace('  ', ' ')
+                print "DONE: " + sql.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ') \
+                    .replace('     ', ' ').replace('    ', ' ').replace('   ', ' ').replace('  ', ' ')
             self.conn.commit()
         finally:
             cur.close()
@@ -220,12 +236,12 @@ class PurchasesPostETL:
             vals = cur.fetchall()
             for data_row in vals:
                 if data_row[1] != None and len(data_row[1]) > 1:
-                    parsedNum  = 0
+                    parsedNum = 0
                     try:
                         parsedNum = float(data_row[1].replace(' ', '').replace(',', '.'))
                     except Exception as ex:
                         print "parsePurchaseDetailNumbers:failure for ", data_row[1]
-                        #traceback.print_tb(ex)
+                        # traceback.print_tb(ex)
                     cur.execute('update tPurchaseDetails set contractAmount=%s where purchaseId=%s',
                                 [parsedNum, data_row[0]])
 
@@ -242,12 +258,13 @@ class PurchasesPostETL:
             vals = cur.fetchall()
             for data_row in vals:
                 if data_row[1] != None and len(data_row[1]) > 1:
-                    parsedNum  = -1
+                    parsedNum = -1
                     try:
-                        parsedNum = float(data_row[1].replace(' Российский рубль', '').replace(' ', '').replace(',', '.'))
+                        parsedNum = float(
+                            data_row[1].replace(' Российский рубль', '').replace(' ', '').replace(',', '.'))
                     except Exception as ex:
                         print "parsePurchaseContractsNumbers:failure for ", data_row[1]
-                        #traceback.print_tb(ex)
+                        # traceback.print_tb(ex)
                     cur.execute('update tPurchaseContracts set price=%s where purchaseContractId=%s',
                                 [parsedNum, data_row[0]])
 

@@ -86,11 +86,24 @@ class DBSaver:
                     [purchaseId, vKey, vValue, vValue500])
 
             self.conn.commit()
-        # except:
-        #     traceback.print_tb(sys.exc_traceback)
-        #     self.logErr("PurchaseData Exception for purchaseId:" + str(purchaseId), sys.exc_info())
-        #     self.conn.rollback()
-        #     raise NameError("PurchaseData Exception for purchaseId:" + str(purchaseId))
+        finally:
+            cur.close()
+
+    def storePurchaseContractData(self, purchaseContractId, dataDict):
+        cur = self.conn.cursor()
+        try:
+            cur.execute("""DELETE FROM tContractRawData where purchaseContractId=%s """, [purchaseContractId])
+
+            for key, value in dataDict.iteritems():
+                vKey = key[:500].encode('utf-8')
+                vValue = value.encode('utf-8')
+                vValue500 = value[:500].encode('utf-8')
+                cur.execute(
+                    """INSERT INTO tContractRawData (purchaseContractId, keyName, textValue, textValue512 )
+                        VALUES (%s, %s, %s, %s) """,
+                    [purchaseContractId, vKey, vValue, vValue500])
+
+            self.conn.commit()
         finally:
             cur.close()
 
@@ -181,19 +194,34 @@ class DBSaver:
         cur = self.conn.cursor()
         try:
             cur.execute(
-                """ UPDATE tPurchase SET lastRun=%s WHERE  purchaseId=%s """,
+                """ UPDATE tPurchase SET lastUpdate=%s WHERE  purchaseId=%s """,
                 [datetime.datetime.today(), purchaseId])
             self.conn.commit()
         finally:
             cur.close()
 
-    def getPurchases(self, depth=0):
+    def touchPurchaseContract(self, purchaseContractId):
         cur = self.conn.cursor()
         try:
-            sql = """ SELECT purchaseId, orderId, _url, _loadDate FROM tPurchase WHERE lastRun is null """
+            cur.execute(
+                """ UPDATE tPurchaseContracts  SET lastUpdate=%s WHERE  purchaseContractId=%s """,
+                [datetime.datetime.today(), purchaseContractId])
+            self.conn.commit()
+        finally:
+            cur.close()
+
+    def getPurchases(self, depth=0):
+        """
+        :param depth: =0 - only new purchase requests
+                    =1 - both new and older than 5 days
+        :return:
+        """
+        cur = self.conn.cursor()
+        try:
+            sql = """ SELECT purchaseId, orderId, _url, _loadDate FROM tPurchase WHERE lastUpdate is null """
             prms = []
             if depth >= 1:
-                sql += """ or lastRun<=%s """
+                sql += """ or lastUpdate<=%s """
                 prms.append(datetime.datetime.today() - timedelta(days=3))
             cur.execute(sql, prms)
 
@@ -211,5 +239,39 @@ class DBSaver:
         finally:
             cur.close()
 
+    def getPurchaseContracts(self, depth=0):
+        """
+        :param depth: =0 - only new contracts
+                    =1 - both new and older than 5 days
+        :return:
+        """
+        cur = self.conn.cursor()
+        try:
+            sql = """ SELECT purchaseContractId, purchaseId, url, contractNo, customerName, winnerName, priceT, pushishDateT, _loadDate FROM tPurchaseContracts WHERE lastUpdate is null """
+            prms = []
+            if depth >= 1:
+                sql += """ or lastUpdate<=%s """
+                prms.append(datetime.datetime.today() - timedelta(days=3))
+            cur.execute(sql, prms)
+
+            rv = []
+            res = cur.fetchall()
+            for row in res:
+                purchaseId = row[1]
+                url = row[2]
+                contractNo = row[3]
+                customerName = row[4]
+                winnerName = row[5]
+                priceT = row[6]
+                pushishDateT = row[7]
+                vPurC = PurchaseContract(purchaseId, url, contractNo, customerName, winnerName, priceT, pushishDateT)
+                vPurC.purchaseContractId = row[0]
+                rv.append(vPurC)
+
+            return rv
+        finally:
+            cur.close()
+
     def postETL(self):
         PurchasesPostETL(self.conn).runPostETL()
+

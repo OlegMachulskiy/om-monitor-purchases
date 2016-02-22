@@ -57,7 +57,7 @@ class PurchaseFile:
 class PurchaseContract:
     def __init__(self, purchaseId, url, contractNo, customerName, winnerName, priceT, pushishDateT):
         self.purchaseId = purchaseId
-        self.contractId = None
+        self.purchaseContractId = None
         self.url = url
         self.contractNo = contractNo
         self.customerName = customerName
@@ -68,15 +68,15 @@ class PurchaseContract:
     def __repr__(self):
         rv = "<PurchaseContract:";
         rv += str(self.purchaseId) + ', ';
-        rv += str(self.contractId) + ', ';
+        rv += str(self.purchaseContractId) + ', ';
         if self.url != None:
-            rv += self.url.encode('utf-8') + ', ';
+            rv += self.url + ', ';
         if self.contractNo != None:
-            rv += self.contractNo.encode('utf-8') + ', ';
+            rv += self.contractNo + ', ';
         if self.customerName != None:
-            rv += self.customerName.encode('utf-8') + '>';
+            rv += self.customerName + '>';
         if self.winnerName != None:
-            rv += self.winnerName.encode('utf-8') + '>';
+            rv += self.winnerName + '>';
         if self.pushishDateT != None:
-            rv += self.pushishDateT.encode('utf-8') + '>';
+            rv += self.pushishDateT + '>';
         return rv
