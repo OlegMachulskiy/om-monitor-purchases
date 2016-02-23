@@ -82,20 +82,28 @@ class PurchaseContract:
         return rv.encode('utf-8')
 
 
-class Organization:
+class Partner:
     def __init__(self):
-        self.orgId = None
+        self.partnerId = None
         self.inn = None
-        self.title = None
-        self.url_sbis = None
+        self.p_name = None
 
     def __repr__(self):
-        rv = "<Organization:";
-        rv += str(self.orgId) + ', ';
+        rv = "<" + type(self).__name__ + ":"
+        rv += str(self.partnerId) + ', '
         if self.inn != None:
-            rv += self.inn + ', ';
-        if self.title != None:
-            rv += self.title + ', ';
-        if self.url_sbis != None:
-            rv += self.url_sbis + '>';
+            rv += self.inn + ', '
+        if self.p_name != None:
+            rv += self.p_name + '>'
         return rv
+
+
+class Person(Partner):
+    def __init__(self):
+        Partner.__init__(self)
+
+
+class Organization(Partner):
+    def __init__(self):
+        Partner.__init__(self)
+        self.url_sbis = None

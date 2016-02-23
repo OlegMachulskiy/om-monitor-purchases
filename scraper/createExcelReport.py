@@ -20,13 +20,14 @@ class CreateExcelReport:
         rc = self.writeGagarinskiySheet(cur, wb)
         print "writeMainSheet: DONE", rc
 
-        for tag in [u'Гагаринский', u'ВоробьевыГоры', u'Университетский', u'Вернадского', u'Ленинский', u'Академический', u'ПрефектураЮЗАО']:
-            rc = self.writeTagWinnersSheet(cur, wb,  tag )
-            print "writeTagWinnersSheet(", tag ,") : DONE", rc
+        for tag in [u'Гагаринский', u'ВоробьевыГоры', u'Университетский', u'Вернадского', u'Ленинский',
+                    u'Академический', u'ПрефектураЮЗАО', u'Благоустройство']:
+            rc = self.writeTagWinnersSheet(cur, wb, tag)
+            print "writeTagWinnersSheet(", tag.encode("utf-8"), ") : DONE", rc
 
         # rc = self.writeMoscowWinnersSheet(cur, wb)
         # print "writeMoscowWinnersSheet: DONE", rc
-		
+
         # rc = self.writeAkademicheskiyWinnersSheet(cur, wb)
         # print "writeAkademicheskiyWinnersSheet: DONE", rc
         #
@@ -140,6 +141,7 @@ JOIN tPurchaseDetails ppd ON pp.purchaseId = ppd.purchaseId
 LEFT JOIN tPurchaseContracts pcc on  pp.purchaseId = pcc.purchaseId
 WHERE ppd.title IS NOT NULL
 and ppd.purchaseId in (select purchaseId from tPurchaseTags WHERE tagLabel in (%s))
+order by Tender_Amount desc
 		""", [tagName])
         rows = cur.fetchall()
         ws.append([desc[0] for desc in cur.description])
@@ -152,7 +154,6 @@ and ppd.purchaseId in (select purchaseId from tPurchaseTags WHERE tagLabel in (%
         # ws.auto_filter.add_filter_column(0, ['Fatal*'], False)
         return rowCount
 
-
     def writeMoscowWinnersSheet(self, cur, wb):
         rowCount = 0
         ws = wb.create_sheet()
@@ -162,6 +163,7 @@ SELECT
        ppd.customerName,
        title,
        winnerName,
+       winnerInn,
        purchaseType,
        stage ,
        contractAmount as Tender_Amount,
@@ -180,7 +182,7 @@ FROM tPurchase pp
 JOIN tPurchaseDetails ppd ON pp.purchaseId = ppd.purchaseId
 LEFT JOIN tPurchaseContracts pcc on  pp.purchaseId = pcc.purchaseId
 WHERE lower(ppd.title) like '%москв%' OR lower(ppd.customerName) like '%москв%'
-
+order by Tender_Amount desc
 		""")
         rows = cur.fetchall()
         ws.append([desc[0] for desc in cur.description])

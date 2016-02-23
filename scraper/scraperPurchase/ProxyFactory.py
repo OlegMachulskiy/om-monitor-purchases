@@ -69,7 +69,9 @@ class ProxyFactory:
         self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe")
         try:
             rv = []
-            self.driver.get('http://www.ultraproxies.com/')
+            pUrl = 'http://www.ultraproxies.com/'
+            print "updating proxies from:", pUrl
+            self.driver.get(pUrl)
             rows = self.driver.find_elements_by_xpath('//table[@class="proxy"]/tbody/tr')
             for row in rows:
                 ips = row.find_elements_by_xpath('td[@class="ip"]')
@@ -77,6 +79,7 @@ class ProxyFactory:
                 if len(ips) > 0 and len(ports) > 0:
                     addr = ips[0].text + ports[0].text
                     rv.append(addr.encode("utf-8"))
+            print "DONE: updating proxies from:", pUrl, len(rv)
             return set(rv)
         finally:
             self.driver.close()
@@ -85,23 +88,54 @@ class ProxyFactory:
         self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe")
         try:
             rv = []
-            self.driver.get('https://www.us-proxy.org/')
+            pUrl = 'https://www.us-proxy.org/'
+            print "updating proxies from:", pUrl
+            self.driver.get(pUrl)
             rows = self.driver.find_elements_by_xpath('//table[@id="proxylisttable"]/tbody/tr')
             for row in rows:
                 tds = row.find_elements_by_xpath('td')
                 if len(tds) > 4:
                     addr = tds[0].text + ':' + tds[1].text
                     rv.append(addr.encode("utf-8"))
+            print "DONE: updating proxies from:", pUrl, len(rv)
+            return set(rv)
+        finally:
+            self.driver.close()
+
+    def updateProxyList03(self):
+        self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe")
+        try:
+            rv = []
+            pUrl = 'http://spys.ru/proxylist/'
+            print "updating proxies from:", pUrl
+            self.driver.get(pUrl)
+
+            select = self.driver.find_element_by_xpath('//select[@id="xpp"]')
+            allOptions = select.find_elements_by_xpath("option")
+            for option in allOptions :
+                if option.text == u'200':
+                    option.click()
+                    break
+
+            rows = self.driver.find_elements_by_xpath('//tr[@class="spy1xx" or @class="spy1x"]')
+            for row in rows:
+                tds = row.find_elements_by_xpath('td/font[@class="spy14"]')
+                if len(tds) > 0:
+                    addr = tds[0].text
+                    rv.append(addr.encode("utf-8"))
+            print "DONE: updating proxies from:", pUrl, len(rv)
             return set(rv)
         finally:
             self.driver.close()
 
     def updateProxiesInDB(self):
         lst = []
+        lst.extend(self.updateProxyList03())
         lst.extend(self.updateProxyList01())
         lst.extend(self.updateProxyList02())
         lst.extend(self.plist)
         proxies = set(lst)
+        print "Total proxies to use:", len(proxies)
         dbs = DBSaver()
         cur = dbs.conn.cursor()
         try:
@@ -113,4 +147,4 @@ class ProxyFactory:
             cur.close()
 
 
-#ProxyFactory().updateProxiesInDB()
+# ProxyFactory().updateProxiesInDB()

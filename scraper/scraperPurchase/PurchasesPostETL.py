@@ -211,6 +211,20 @@ class PurchasesPostETL:
         (lower(title) like '%юзао%' OR lower(customername) like '%юзао%' OR lower(title) like '%юго%' OR lower(customername) like '%юго%')
         and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='ПрефектураЮЗАО');
         """
+        ,
+        """
+        insert into tPurchaseTags (purchaseId, tagLabel)
+        select purchaseId, 'Благоустройство' from tPurchaseDetails pd
+        where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
+        (lower(title) like '%благоустройст%' OR lower(customername) like '%благоустройст%'
+        OR lower(title) like '%реконструкци%' OR lower(customername) like '%реконструкци%'
+        OR lower(title) like '%эколог%' OR lower(customername) like '%эколог%'
+        OR lower(title) like '%озелен%' OR lower(customername) like '%озелен%'
+		OR lower(title) like '%противогололедн%' OR lower(title) like '%противогололедн%'
+		OR lower(title) like '%вырубк%' OR lower(title) like '%покос%'
+		OR lower(title) like '%газон%' OR lower(title) like '%кустарни%' )
+        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Благоустройство');
+        """
     ]
 
     sqls1 = [
@@ -232,8 +246,14 @@ class PurchasesPostETL:
         """
         ,
         """
-        insert into tOrganization (orgId, inn)
-        (select nextval('idGen'), winnerINN from  tPurchaseContracts tpc where not exists (select * from tOrganization  tpd1 where tpd1.inn = tpc.winnerINN) and winnerINN is not null)
+        insert into tPartner (partnerId, inn, category)
+        (select nextval('idGen'), winnerINN, 'O' from  (select distinct winnerINN from tPurchaseContracts) tpc
+        where not exists (select * from tPartner  tpd1 where tpd1.inn = tpc.winnerINN) and winnerINN is not null)
+        """
+        ,
+        """
+        insert into tOrganization (partnerId)
+        SELECT partnerId from  tPartner tpc where category='O' AND not exists (select * from tOrganization  tpd1 where tpd1.partnerId = tpc.partnerId)
         """
     ]
 

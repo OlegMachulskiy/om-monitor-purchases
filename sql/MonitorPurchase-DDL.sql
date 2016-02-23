@@ -4,11 +4,14 @@ CREATE SEQUENCE idGen START 100 ;
 
 --DROP VIEW vPurchases;
 
+DROP TABLE tPartnerURLQueue;
 DROP TABLE tContractRawData;
 DROP TABLE tPurchaseTags;
 DROP TABLE tPurchase2Query;
 DROP TABLE tErrorLog;
 DROP TABLE tOrganization;
+DROP TABLE tPartnerRelation ;
+DROP TABLE tPartner;
 DROP TABLE tPurchaseRawData;-- DROP TABLE tPurchaseData;
 DROP TABLE tPurchaseFiles;
 DROP TABLE tPurchaseContracts;
@@ -129,15 +132,40 @@ CREATE TABLE  tContractRawData (
 	FOREIGN KEY (purchaseContractId) REFERENCES tPurchaseContracts ON DELETE CASCADE
 );
 
-CREATE TABLE  tOrganization (
-	orgId numeric(36) NOT NULL, 
-	competence varchar(100) , /* Полномочия организации */
-	title VARCHAR(512) NULL, /* Полное наименование */
-	inn 	VARCHAR(36) NULL, /* ИНН */
-	url_sbis	VARCHAR(512) NULL, /* URL на SBIS */
-	
+
+CREATE TABLE  tPartner (
+	partnerId 	numeric(36) NOT NULL, 
+	inn 		VARCHAR(36) NULL, /* ИНН */
+	p_name 		VARCHAR(512) NULL, /* Краткое наименование для ЮР / ФИО для физ */
+	category	char(1), /* [P]erson / [O]rganization */
 	_loadDate  timestamp default now(),
-	PRIMARY KEY (orgId)
+	PRIMARY KEY(partnerId)
+);
+
+CREATE TABLE  tOrganization (
+	partnerId numeric(36) NOT NULL, 
+	orgFullName VARCHAR(512) NULL, /* Полное наименование */
+	directorName VARCHAR(128) NULL, /*  */
+	directorPosition VARCHAR(128) NULL, /*  */
+	address VARCHAR(512) NULL, 
+	description TEXT,
+	url_sbis	VARCHAR(512) NULL, /* URL на SBIS */
+	PRIMARY KEY (partnerId), 
+	FOREIGN KEY (partnerId) REFERENCES tPartner ON DELETE CASCADE
+);
+
+CREATE TABLE  tPartnerRelation (
+	partnerId1 numeric(36) NOT NULL, 
+	partnerId2 numeric(36) NOT NULL, 
+	title VARCHAR(512) , 
+	_loadDate  timestamp default now(), 
+	PRIMARY KEY(partnerId1, partnerId2), 
+	FOREIGN KEY (partnerId1) REFERENCES tPartner ON DELETE CASCADE,
+	FOREIGN KEY (partnerId2) REFERENCES tPartner ON DELETE CASCADE
+);
+
+CREATE TABLE tPartnerURLQueue (
+	url_sbis	VARCHAR(512) 
 );
 
 create table tMapping (

@@ -6,6 +6,7 @@ from scraperPurchase import *
 
 thread_lock = threading.Lock()
 
+
 class WorkerThread(threading.Thread):
     def __init__(self, organizations):
         threading.Thread.__init__(self)
@@ -13,7 +14,7 @@ class WorkerThread(threading.Thread):
 
     def run(self):
         self.scraper = ScrapZakupkiGovRu('http://www.ya.ru')
-        self.scraper.initializeWebdriver()
+        self.scraper.initializeWebdriver(useProxy=True)
         self.dbSaver = DBSaver()
 
         doRun = True
@@ -32,17 +33,17 @@ class WorkerThread(threading.Thread):
 
             if self.organizations != None:
                 self.scraper.lookupOrganizationInfo(self.dbSaver, theOrg)
-                #dbs.touchPurchaseContract(theOrg.purchaseContractId)
+                # dbs.touchPurchaseContract(theOrg.purchaseContractId)
 
 
 dbs = DBSaver()
 PurchasesPostETL(dbs.conn).runQueriesList0(PurchasesPostETL.sqls1)
 
-orgs = dbs.getOrganizations()
+orgs = dbs.getOrganizations(" (p_name IS NULL AND inn IS NOT NULL)")
 print orgs[:32]
 
 threads = []
-for i in range(0, 5):
+for i in range(0, 19):
     threads.append(WorkerThread(orgs))
 
 for i in range(0, len(threads)):
