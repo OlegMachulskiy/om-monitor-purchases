@@ -211,7 +211,20 @@ set contractStatus = (
 
 select * from tOrganization
 
+select * from tPurchaseContracts where length(winnerInn)>10
+
 
 select distinct winnerINN from tPurchaseContracts
-insert into tPurchaseDetails (purchaseId) 	(select purchaseId from  tPurchase tp	where not exists (select * from tPurchaseDetails  tpd1 where tpd1.purchaseId = tp.purchaseId))
 
+delete from tOrganization 
+
+insert into tOrganization (orgId, inn) 
+(select nextval('idGen'), winnerINN from  tPurchaseContracts tpc where not exists (select * from tOrganization  tpd1 where tpd1.inn = tpc.winnerINN) and winnerINN is not null)
+
+
+update tOrganization set winnerName=
+
+
+select * from tHTTPProxies
+select * from tSourceQueries order by 1
+update tSourceQueries set lastRun = NULL

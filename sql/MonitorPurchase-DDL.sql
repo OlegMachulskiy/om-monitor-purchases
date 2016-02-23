@@ -16,6 +16,7 @@ DROP TABLE tPurchaseDetails;
 DROP TABLE tPurchase ;
 DROP TABLE tMapping ;
 DROP TABLE tSourceQueries;
+DROP TABLE tHTTPProxies;
 	
 CREATE TABLE tErrorLog (
 	message VARCHAR(512) NULL, 
@@ -128,15 +129,14 @@ CREATE TABLE  tContractRawData (
 	FOREIGN KEY (purchaseContractId) REFERENCES tPurchaseContracts ON DELETE CASCADE
 );
 
-
-
 CREATE TABLE  tOrganization (
 	orgId numeric(36) NOT NULL, 
 	competence varchar(100) , /* Полномочия организации */
 	title VARCHAR(512) NULL, /* Полное наименование */
+	inn 	VARCHAR(36) NULL, /* ИНН */
+	url_sbis	VARCHAR(512) NULL, /* URL на SBIS */
 	
 	_loadDate  timestamp default now(),
-	_url	varchar(512),
 	PRIMARY KEY (orgId)
 );
 
@@ -151,6 +151,10 @@ create table tPurchaseTags (
 	tagLabel 	varchar(36) NOT NULL, 
 	PRIMARY KEY (purchaseId, tagLabel),
 	FOREIGN KEY (purchaseId) REFERENCES tPurchase ON DELETE CASCADE
+);
+
+create table tHTTPProxies (
+	proxy	VARCHAR(36) NOT NULL
 );
 
 
@@ -197,10 +201,14 @@ INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Унив
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Вавилова');
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Ляпунова');
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Бардина');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Косыгина');
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Москва противогололедн');
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Москва благоустройств');
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Москва озеленени');
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Москва храм');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'УПРАВА АКАДЕМИЧЕСКОГО РАЙОНА');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Префектура Юго-Западного административного округа города Москвы');
+ 
 
 
 

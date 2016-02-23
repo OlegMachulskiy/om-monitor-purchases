@@ -20,11 +20,18 @@ class CreateExcelReport:
         rc = self.writeGagarinskiySheet(cur, wb)
         print "writeMainSheet: DONE", rc
 
-        rc = self.writeLocalWinnersSheet(cur, wb)
-        print "writeLocalWinnersSheet: DONE", rc
+        for tag in [u'Гагаринский', u'ВоробьевыГоры', u'Университетский', u'Вернадского', u'Ленинский', u'Академический', u'ПрефектураЮЗАО']:
+            rc = self.writeTagWinnersSheet(cur, wb,  tag )
+            print "writeTagWinnersSheet(", tag ,") : DONE", rc
 
-        rc = self.writeMoscowWinnersSheet(cur, wb)
-        print "writeMoscowWinnersSheet: DONE", rc
+        # rc = self.writeMoscowWinnersSheet(cur, wb)
+        # print "writeMoscowWinnersSheet: DONE", rc
+		
+        # rc = self.writeAkademicheskiyWinnersSheet(cur, wb)
+        # print "writeAkademicheskiyWinnersSheet: DONE", rc
+        #
+        # rc = self.writePrefekturaUSAOWinnersSheet(cur, wb)
+        # print "writePrefekturaUSAOWinnersSheet: DONE", rc
 
         rc = self.writeErrorsSheet(cur, wb)
         print "writeErrorsSheet: DONE", rc
@@ -103,10 +110,10 @@ and ppd.purchaseId in (select purchaseId from tPurchaseTags WHERE tagLabel in ('
         ws.auto_filter.ref = "A:Z"
         return rowCount
 
-    def writeLocalWinnersSheet(self, cur, wb):
+    def writeTagWinnersSheet(self, cur, wb, tagName):
         rowCount = 0
         ws = wb.create_sheet()
-        ws.title = "Local Winners"
+        ws.title = tagName
         cur.execute("""
 SELECT
        ppd.customerName,
@@ -132,8 +139,8 @@ FROM tPurchase pp
 JOIN tPurchaseDetails ppd ON pp.purchaseId = ppd.purchaseId
 LEFT JOIN tPurchaseContracts pcc on  pp.purchaseId = pcc.purchaseId
 WHERE ppd.title IS NOT NULL
-and ppd.purchaseId in (select purchaseId from tPurchaseTags WHERE tagLabel in ('Гагаринский', 'ВоробьевыГоры', 'Университетский'))
-		""")
+and ppd.purchaseId in (select purchaseId from tPurchaseTags WHERE tagLabel in (%s))
+		""", [tagName])
         rows = cur.fetchall()
         ws.append([desc[0] for desc in cur.description])
         for row in rows:
@@ -142,8 +149,9 @@ and ppd.purchaseId in (select purchaseId from tPurchaseTags WHERE tagLabel in ('
             rowCount += 1
 
         ws.auto_filter.ref = "A:Z"
-        ws.auto_filter.add_filter_column(0, ['Fatal*'], False)
+        # ws.auto_filter.add_filter_column(0, ['Fatal*'], False)
         return rowCount
+
 
     def writeMoscowWinnersSheet(self, cur, wb):
         rowCount = 0
@@ -182,7 +190,7 @@ WHERE lower(ppd.title) like '%москв%' OR lower(ppd.customerName) like '%м�
             rowCount += 1
 
         ws.auto_filter.ref = "A:Z"
-        ws.auto_filter.add_filter_column(0, ['Fatal*'], False)
+        # ws.auto_filter.add_filter_column(0, ['Fatal*'], False)
         return rowCount
 
 

@@ -1,5 +1,8 @@
 import re
 from urllib2 import HTTPError
+from selenium.webdriver.support.ui import WebDriverWait # available since 2.4.0
+from selenium.webdriver.support import expected_conditions as EC # available since 2.26.0
+from selenium.webdriver.common.by import By
 
 from selenium import webdriver
 
@@ -13,9 +16,13 @@ class PageParserContract:
         # fullTextHTML = self.driver.page_source
         # open("file02.html", "w").write(fullTextHTML.encode('utf-8'))
         d = {}
+        element = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.XPATH, '//table[@class="participantInfoTable"]/tbody/tr')))
 
         dataTRs = self.driver.find_elements_by_xpath(
             '//div[@class="noticeTabBoxWrapper"]/table/tbody/tr')
+        if len(dataTRs)<1:
+            raise Exception("Page returned by proxy has no data:", self.driver.current_url)
+
         for dtr in dataTRs:
             tds = dtr.find_elements_by_xpath("td")
             if len(tds) > 1:

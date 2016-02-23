@@ -14,19 +14,23 @@ class ScrapZakupkiGovRu:
     def __init__(self, scrapingUrl):
         self.scrapingUrl = scrapingUrl
 
-    def initializeWebdriver(self):
+    def initializeWebdriver(self, useProxy=True):
         try:
             # self.driver = webdriver.Firefox()
-            rndProxy = ["--proxy=" + ProxyFactory().getRandomProxy()]
-            self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe", service_args=rndProxy)
+            proxyParams = []
+            if useProxy:
+                proxyParams = ["--proxy=" + ProxyFactory().getRandomProxy()]
 
-            self.driver.get(self.scrapingUrl)
+
+            self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe", service_args=proxyParams)
+
+            # self.driver.get(self.scrapingUrl)
             open("file00.html", "w").write(unicode(self.driver.page_source).encode('utf-8'))
         except HTTPError as e:
             print(e)
             raise (e)
         else:
-            print "Created webDriver for:" , self.scrapingUrl, rndProxy
+            print "Created webDriver for:" , self.scrapingUrl, proxyParams
 
     def __del__(self):
         if self.driver != None:

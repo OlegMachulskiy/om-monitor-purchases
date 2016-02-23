@@ -239,7 +239,7 @@ class DBSaver:
         finally:
             cur.close()
 
-    def getPurchaseContracts(self, depth=0):
+    def getPurchaseContracts(self, depth=0, purchaseContractId=None):
         """
         :param depth: =0 - only new contracts
                     =1 - both new and older than 5 days
@@ -247,12 +247,16 @@ class DBSaver:
         """
         cur = self.conn.cursor()
         try:
-            sql = """ SELECT purchaseContractId, purchaseId, url, contractNo, customerName, winnerName, priceT, pushishDateT, _loadDate FROM tPurchaseContracts WHERE lastUpdate is null """
-            prms = []
-            if depth >= 1:
-                sql += """ or lastUpdate<=%s """
-                prms.append(datetime.datetime.today() - timedelta(days=3))
-            cur.execute(sql, prms)
+            if purchaseContractId==None:
+                sql = """ SELECT purchaseContractId, purchaseId, url, contractNo, customerName, winnerName, priceT, pushishDateT, _loadDate FROM tPurchaseContracts WHERE lastUpdate is null """
+                prms = []
+                if depth >= 1:
+                    sql += """ or lastUpdate<=%s """
+                    prms.append(datetime.datetime.today() - timedelta(days=3))
+                cur.execute(sql, prms)
+            else:
+                sql = """ SELECT purchaseContractId, purchaseId, url, contractNo, customerName, winnerName, priceT, pushishDateT, _loadDate FROM tPurchaseContracts WHERE purchaseContractId=%s """
+                cur.execute(sql, [purchaseContractId])
 
             rv = []
             res = cur.fetchall()
@@ -271,6 +275,7 @@ class DBSaver:
             return rv
         finally:
             cur.close()
+
 
     def getOrganizations(self):
         """

@@ -16,28 +16,48 @@ class PurchasesPostETL:
             select textValue512
             from tPurchaseRawData pd join tMapping mp
             on pd.keyName=mp.title and mp.tag='purchase_title'
-            where pd.purchaseId=p.purchaseId),
-        responsible = (
+            where pd.purchaseId=p.purchaseId)
+		"""
+        ,
+        """
+        update tPurchaseDetails p
+        SET responsible = (
             select textValue512
             from tPurchaseRawData pd join tMapping mp
             on pd.keyName=mp.title and mp.tag='contact_person'
-            where pd.purchaseId=p.purchaseId),
-        contractAmountT = (
+            where pd.purchaseId=p.purchaseId)
+		"""
+        ,
+        """
+        update tPurchaseDetails p
+        SET contractAmountT = (
             select textValue512
             from tPurchaseRawData pd join tMapping mp
             on pd.keyName=mp.title and mp.tag='purchase_amount'
-            where pd.purchaseId=p.purchaseId),
-        customerName = (
+            where pd.purchaseId=p.purchaseId)
+		"""
+        ,
+        """
+        update tPurchaseDetails p
+        SET customerName = (
             select textValue512
             from tPurchaseRawData pd join tMapping mp
             on pd.keyName=mp.title and mp.tag='purchase_customer'
-            where pd.purchaseId=p.purchaseId limit 1),
-        stage = (
+            where pd.purchaseId=p.purchaseId limit 1)
+		"""
+        ,
+        """
+        update tPurchaseDetails p
+        SET stage = (
             select textValue512
             from tPurchaseRawData pd join tMapping mp
             on pd.keyName=mp.title and mp.tag='purchase_stage'
-            where pd.purchaseId=p.purchaseId limit 1),
-        purchaseType = (
+            where pd.purchaseId=p.purchaseId limit 1)
+		"""
+        ,
+        """
+        update tPurchaseDetails p
+        SET purchaseType = (
             select textValue512
             from tPurchaseRawData pd join tMapping mp
             on pd.keyName=mp.title and mp.tag='purchase_type'
@@ -159,10 +179,37 @@ class PurchasesPostETL:
         ,
         """
         insert into tPurchaseTags (purchaseId, tagLabel)
+        select purchaseId, 'Вернадского' from tPurchaseDetails pd
+        where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
+        (lower(title) like '%вернадского%' OR lower(customername) like '%вернадского%') AND
+        (lower(title) like '%просп%' OR lower(customername) like '%просп%')
+        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Вернадского');
+        """
+        ,
+        """
+        insert into tPurchaseTags (purchaseId, tagLabel)
+        select purchaseId, 'Ленинский' from tPurchaseDetails pd
+        where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
+        (lower(title) like '%ленинск%' OR lower(customername) like '%ленинск%') AND
+        (lower(title) like '%просп%' OR lower(customername) like '%просп%')
+        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Ленинский');
+        """
+        ,
+        """
+        insert into tPurchaseTags (purchaseId, tagLabel)
         select purchaseId, 'Академический' from tPurchaseDetails pd
         where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
         (lower(title) like '%академическ%' OR lower(customername) like '%академическ%')
         and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Академический');
+        """
+        ,
+        """
+        insert into tPurchaseTags (purchaseId, tagLabel)
+        select purchaseId, 'ПрефектураЮЗАО' from tPurchaseDetails pd
+        where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
+        (lower(title) like '%префект%' OR lower(customername) like '%префект%') AND
+        (lower(title) like '%юзао%' OR lower(customername) like '%юзао%' OR lower(title) like '%юго%' OR lower(customername) like '%юго%')
+        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='ПрефектураЮЗАО');
         """
     ]
 
@@ -173,6 +220,7 @@ class PurchasesPostETL:
             select textValue512
             from tContractRawData crd join tMapping mp
             on crd.purchaseContractId=p.purchaseContractId and keyName='participantInfoTable:ИНН:' limit 1)
+        where winnerINN  is null
         """
         ,
         """
