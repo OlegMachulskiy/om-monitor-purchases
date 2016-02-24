@@ -45,7 +45,7 @@ for dep in depths:
     print purchases[:32]
 
     threads = []
-    for i in range(0, 8):
+    for i in range(0, 10):
         threads.append(WorkerThread(purchases))
 
     print threads

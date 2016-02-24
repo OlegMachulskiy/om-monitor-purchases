@@ -196,22 +196,11 @@ select * from tPurchaseContracts  where winnerInn is not Null
 
 
 
-update tPurchaseContracts p
-set winnerINN = (
-	select textValue512
-	from tContractRawData crd join tMapping mp
-	on crd.purchaseContractId=p.purchaseContractId and keyName='participantInfoTable:ИНН:' limit 1)
 
-
-update tPurchaseContracts p
-set contractStatus = (
-	select textValue512
-	from tContractRawData crd join tMapping mp
-	on crd.purchaseContractId=p.purchaseContractId and keyName='"Статус контракта"' limit 1)
 
 select * from tOrganization
 
-select * from tPurchaseContracts where length(winnerInn)>10
+select * from tPurchaseContracts where lower(customerName) like '%гагаринск%'
 
 
 select distinct winnerINN from tPurchaseContracts
@@ -228,3 +217,35 @@ update tOrganization set winnerName=
 select * from tHTTPProxies
 select * from tSourceQueries order by 1
 update tSourceQueries set lastRun = NULL
+
+insert into tPartner (partnerId, inn, category)
+(select nextval('idGen'), winnerINN, 'O' from  (select distinct winnerINN from tPurchaseContracts) tpc 
+where not exists (select * from tPartner  tpd1 where tpd1.inn = tpc.winnerINN) and winnerINN is not null)
+
+select pp.partnerId , pp.inn, pp.p_name, pp._loadDate, oo.orgFullName, oo.directorName, oo.directorPosition, oo.address, oo.description, oo.url_sbis
+from tPartner pp join tOrganization oo on  pp.partnerId = oo.partnerId
+
+select * from tPartnerRelation
+select * from tOrganization
+delete from tPartner
+SELECT DISTINCT url_sbis FROM tPartnerURLQueue WHERE url_sbis IS NOT NULL
+
+
+with qq as (
+select distinct  /*partnerId1, partnerId2, */ title, p1.p_name as name1, p2.p_name as name2
+from tPartnerRelation tpr
+join tPartner p1 on tpr.partnerId1 = p1.partnerId
+join tPartner p2 on tpr.partnerId2 = p2.partnerId
+)
+select name2, count(1) 
+from qq group by name2
+order by 2 desc
+
+select *
+from tPartnerRelation tpr
+join tPartner p1 on tpr.partnerId1 = p1.partnerId
+join tPartner p2 on tpr.partnerId2 = p2.partnerId
+where p2.p_name='Ермолаев Вячеслав Вячеславович'
+
+
+select * from tPurchaseBid

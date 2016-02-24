@@ -1,4 +1,9 @@
+# -*- coding: utf-8 -*-
+
 from Purchase import *
+from selenium.webdriver.support.ui import WebDriverWait  # available since 2.4.0
+from selenium.webdriver.support import expected_conditions as EC  # available since 2.26.0
+from selenium.webdriver.common.by import By
 
 
 class PageParserPurchaseRequest:
@@ -51,6 +56,30 @@ class PageParserPurchaseRequest:
             print "PurchaseContract:", pcontr
             self.dbSaver.storePurchaseContract(pcontr)
 
+        vProtocolFound = False
+        protocolLikeLinks = self.driver.find_elements_by_xpath('//table[@class="noticeCardTableInBlock"]/tbody/tr/td/a')
+        for href in protocolLikeLinks:
+            if u"protocolId=" in href.get_attribute("href"): ### FOUND ON THIS SERVER. Other Servers will have different URLs
+                vProtocolFound = True
+                href.click()
+                break
+
+        if vProtocolFound:
+            element = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, '//td[@tab="PROTOCOL_BID_LIST"]')))
+
+            element.click()
+
+            element = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located(
+                    (By.XPATH, '//table[@id="protocolBid"]/tbody/tr/td[@class="firstTd"]/a')))
+
+            bids = self.driver.find_elements_by_xpath('//table[@id="protocolBid"]/tbody/tr/td[@class="firstTd"]/a')
+            for bidA in bids:
+                bidUrl = bidA.get_attribute("href")
+                self.dbSaver.storePurchaseBid(vPurchase.purchaseId, bidUrl)
+        else:
+            print "There's no PROTOCOL_BID_LIST link here:", self.driver.current_url
             # filesList = self.readPurchaseFiles(vPurchase.purchaseId)
             # print "filesList:", filesList
             # self.dbSaver.storePurchaseFiles(vPurchase.purchaseId, filesList)

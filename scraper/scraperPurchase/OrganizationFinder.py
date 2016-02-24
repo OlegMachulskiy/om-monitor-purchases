@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+import threading
 from urllib2 import HTTPError
 
 from selenium import webdriver
@@ -23,14 +24,14 @@ class OrganizationFinder:
         # self.driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.TAB)
         #
         # self.driver.switch_to_window(main_window)
-        print "lookupOrganizationInfo:", vOrg
+        print "lookupOrganizationInfo:", vOrg, threading.current_thread()
         # self.driver.get(vPurchContract.url)
         # contractDataMap = self.readTabPurchaseContractData()
         # self.dbSaver.storePurchaseContractData(vPurchContract.purchaseContractId, contractDataMap)
         vOrg.url_sbis = "https://sbis.ru/contragents/" + vOrg.inn
 
         self.driver.get(vOrg.url_sbis)
-        element = WebDriverWait(self.driver, 20).until(
+        element = WebDriverWait(self.driver, 30).until(
             EC.presence_of_element_located((By.XPATH, '//div[@class="cCard__MainReq"]')))
 
         vOrg.p_name = element.find_element_by_xpath('div[@class="cCard__MainReq-Name"]/h1').text

@@ -409,3 +409,20 @@ class DBSaver:
             self.conn.commit()
         finally:
             cur.close()
+
+    def storePurchaseBid(self, purchaseId, bidUrl):
+        cur = self.conn.cursor()
+        try:
+            cur.execute("SELECT bidId FROM tPurchaseBid WHERE purchaseId=%s AND url=%s", [purchaseId, bidUrl])
+            rows = cur.fetchall()
+            if len(rows) > 0 :
+                return rows[0][0]
+            else:
+                cur.execute("""select nextval('idGen')""")
+                bidId = cur.fetchone()[0]
+                cur.execute("INSERT INTO tPurchaseBid (bidId, purchaseId, url) VALUES (%s, %s, %s)",
+                            [bidId, purchaseId, bidUrl])
+                self.conn.commit()
+                return bidId
+        finally:
+            cur.close()

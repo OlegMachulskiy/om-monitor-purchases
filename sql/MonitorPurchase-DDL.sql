@@ -4,6 +4,7 @@ CREATE SEQUENCE idGen START 100 ;
 
 --DROP VIEW vPurchases;
 
+DROP TABLE tPurchaseBid;
 DROP TABLE tPartnerURLQueue;
 DROP TABLE tContractRawData;
 DROP TABLE tPurchaseTags;
@@ -132,6 +133,15 @@ CREATE TABLE  tContractRawData (
 	FOREIGN KEY (purchaseContractId) REFERENCES tPurchaseContracts ON DELETE CASCADE
 );
 
+-- DROP TABLE tPurchaseBid 
+CREATE TABLE tPurchaseBid (
+	bidId	numeric(36) NOT NULL, 
+	purchaseId numeric(36) NOT NULL, 
+	url	VARCHAR(512) NOT NULL, 
+	_loadDate  timestamp default now(),
+	PRIMARY KEY(bidId),
+	FOREIGN KEY (purchaseId) REFERENCES tPurchase ON DELETE CASCADE
+);
 
 CREATE TABLE  tPartner (
 	partnerId 	numeric(36) NOT NULL, 
