@@ -16,6 +16,7 @@ class ZTest25:
     def testNetworkx(self):
         g = nx.Graph()
         cur = self.dbSaver.conn.cursor()
+        names={}
         try:
             cur.execute("SELECT partnerId, inn, p_name, category from tPartner")
             rows = cur.fetchall()
@@ -27,15 +28,16 @@ class ZTest25:
                 title += '/'
                 if row[3] != None: title += row[3]
                 title += ')'
-                g.add_node(row[0], title=title)
+                names[row[0]] = title
+                g.add_node(row[0], nName=title)
             print "Nodes added:", g.number_of_nodes()
             cur.execute("""
                 SELECT partnerId1, partnerId2, title from tPartnerRelation where partnerId2 NOT IN
-                        (select partnerId from tPartner where p_name in ('', 'Уставный капитал', 'Собственная доля предприятия', 'Учредители не заявлены'))
+                        (select partnerId from tPartner where p_name in ('', 'Уставный капитал', 'Собственная доля предприятия', 'Учредители не заявлены', 'Департамент имущества города Москвы'))
             """)
             rows = cur.fetchall()
             for row in rows:
-                g.add_edge(row[0], row[1], title=row[2])
+                g.add_edge(row[0], row[1], eTitle=row[2])
             print "Edges added:", g.number_of_nodes()
 
             concomps = nx.connected_components(g)
@@ -48,7 +50,7 @@ class ZTest25:
 
             spath = nx.shortest_path(g, 101648, 104707)
             for n in spath:
-                print "\t", (g[n])
+                print "\t", names[n], (g[n])
 
         finally:
             self.dbSaver.conn.close()
