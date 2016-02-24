@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+
+##############################################################################################################
+### get contracts witout details and load add data to tContractRawData  table
+##############################################################################################################
+
 import random
 import urllib
 import threading
