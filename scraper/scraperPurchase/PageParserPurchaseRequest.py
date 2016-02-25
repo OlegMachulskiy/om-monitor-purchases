@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from Purchase import *
-from selenium.webdriver.support.ui import WebDriverWait  # available since 2.4.0
-from selenium.webdriver.support import expected_conditions as EC  # available since 2.26.0
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC  # available since 2.26.0
+from selenium.webdriver.support.ui import WebDriverWait  # available since 2.4.0
+
+from Purchase import *
 
 
 class PageParserPurchaseRequest:
@@ -83,9 +84,9 @@ class PageParserPurchaseRequest:
                 bidUrl = bidA.get_attribute("href")
                 self.dbSaver.storePurchaseBid(vPurchase.purchaseId, bidUrl)
         else:
-            eMsg = "There's no PROTOCOL_BID_LIST link here:" + self.driver.current_url
-            self.dbSaver.logErr(eMsg, Exception(eMsg))
+            eMsg = "There's no PROTOCOL_BID_LIST link here:"
             print eMsg
+            self.dbSaver.logErr(eMsg, Exception(eMsg + self.driver.current_url))
             # filesList = self.readPurchaseFiles(vPurchase.purchaseId)
             # print "filesList:", filesList
             # self.dbSaver.storePurchaseFiles(vPurchase.purchaseId, filesList)
@@ -103,8 +104,9 @@ class PageParserPurchaseRequest:
         if len(purchaseMap) > 0:
             self.dbSaver.storePurchaseData(vPurchase.purchaseId, purchaseMap)
         else:
-            ex = Exception("Data map returned for purchaseId is empty:" + str(vPurchase), self.driver.current_url)
-            self.dbSaver.logErr("Data map returned for purchaseId is empty", ex)
+            msg = "Data map returned for purchaseId is empty:"
+            ex = Exception(msg + str(vPurchase))
+            self.dbSaver.logErr(msg, ex)
             raise ex
 
         purchaseTabs = self.driver.find_elements_by_xpath(

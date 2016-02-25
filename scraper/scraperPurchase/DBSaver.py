@@ -1,5 +1,3 @@
-import traceback
-import datetime
 from datetime import *
 
 import psycopg2
@@ -22,14 +20,19 @@ class DBSaver:
             print row
 
     def logErr(self, msg, exc):
-        (exc_type, exc_value, exc_traceback) = exc
+        if isinstance(exc, Exception):
+            # eee = Exception
+            (exc_type, exc_value, exc_traceback) = (exc.__class__, exc.message, traceback.extract_stack())
+        else:  # sys.exc_info() contains it
+            (exc_type, exc_value, exc_tracebackObj) = exc
+            exc_traceback = traceback.extract_tb(exc_tracebackObj)
         cur = self.conn.cursor()
         print "logErr:Exception:", (str(msg.encode('utf-8')), str(exc_type), str(exc_value),
-                                    traceback.format_tb(exc_traceback))
+                                    traceback.format_list(exc_traceback))
         cur.execute("""insert into tErrorLog (message, exc_type, exc_value, exc_traceback) values (%s, %s, %s, %s)
                 """, (
             str(msg.encode('utf-8'))[:500], str(exc_type)[:500], str(exc_value)[:500],
-            traceback.format_tb(exc_traceback)))
+            traceback.format_list(exc_traceback)))
         self.conn.commit()
         cur.close()
 
@@ -415,7 +418,7 @@ class DBSaver:
         try:
             cur.execute("SELECT bidId FROM tPurchaseBid WHERE purchaseId=%s AND url=%s", [purchaseId, bidUrl])
             rows = cur.fetchall()
-            if len(rows) > 0 :
+            if len(rows) > 0:
                 return rows[0][0]
             else:
                 cur.execute("""select nextval('idGen')""")
