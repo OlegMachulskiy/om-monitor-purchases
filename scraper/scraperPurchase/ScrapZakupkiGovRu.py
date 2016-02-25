@@ -47,11 +47,14 @@ class ScrapZakupkiGovRu:
 
     def scrapHeaders(self, dbSaver, queryId, scrapingUrl):
         self.dbSaver = dbSaver
-        print "Start scraping: ", queryId
+        print "Start scraping: ", queryId, threading.current_thread()
 
         self.driver.get(scrapingUrl)
-        vContinue = True  # becomes False when last page in pagination reached
 
+        element = WebDriverWait(self.driver, 20).until(
+            EC.presence_of_element_located((By.XPATH, '//div[@class="registerBox"]/table/tbody')))
+
+        vContinue = True  # becomes False when last page in pagination reached
         while vContinue:
             tenderTDs = self.driver.find_elements_by_xpath(
                 '//div[@class="registerBox"]/table/tbody/tr/td[@class="descriptTenderTd"]')
@@ -64,7 +67,7 @@ class ScrapZakupkiGovRu:
 
             nextLinks = self.driver.find_elements_by_xpath('//ul[@class="paging"]/li[@class="rightArrow"]/a')
             if len(nextLinks) > 0:
-                print '  Jump next page', queryId
+                print '  Jump next page', queryId, threading.current_thread()
                 nextLinks[0].click()
             else:
                 vContinue = False

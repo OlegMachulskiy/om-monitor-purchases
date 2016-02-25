@@ -10,52 +10,89 @@ import threading
 
 from scraperPurchase import *
 
+import random
+import urllib
+import threading
+
+from scraperPurchase import *
+import random
+import threading
+import urllib
+import time
+
+from scraperPurchase import *
+
 thread_lock = threading.Lock()
 
+vgScrapingEntities = None
+vgDBS = DBSaver()
 
 class WorkerThread(threading.Thread):
-    def __init__(self, queryItems):
+    def __init__(self):
         threading.Thread.__init__(self)
-        self.queryItems = queryItems
+        WorkerThread.loadScrapingEntities()
+
+    @staticmethod
+    def loadScrapingEntities():
+        global vgScrapingEntities
+        global vgDBS
+        if vgScrapingEntities == None or len(vgScrapingEntities) < threading.active_count():
+            with thread_lock:
+                vgScrapingEntities = vgDBS.getQueryStrings()
+                print "vgScrapingEntities: ", len(vgScrapingEntities), ":", vgScrapingEntities[:32]
+
+    @staticmethod
+    def getScrapingEntity():
+        global vgScrapingEntities
+        with thread_lock:
+            theObj = None
+            if len(vgScrapingEntities) > 0:
+                idx = random.randint(0, len(vgScrapingEntities) - 1)
+                theObj = vgScrapingEntities[idx]
+                vgScrapingEntities.pop(idx)
+            if len(vgScrapingEntities) % 10 == 0:
+                print "####Left in queue:", len(vgScrapingEntities), "threads:", threading.active_count()
+            return theObj
 
     def run(self):
-        # with(thread_lock):
-        self.scraper = ScrapZakupkiGovRu('http://www.ya.ru')
-        self.scraper.initializeWebdriver()
-        self.dbSaver = DBSaver()
+        try:
+            self.scraper = ScrapZakupkiGovRu('http://www.ya.ru')
+            self.scraper.initializeWebdriver(useProxy=True)
+            self.dbSaver = DBSaver()
 
-        doRun = True
-
-        while doRun:
-            scrapingItem = None
-            with(thread_lock):
-                if len(self.queryItems) > 0:
-                    idx = random.randint(0, len(self.queryItems) - 1)
-                    scrapingItem = self.queryItems[idx]
-                    self.queryItems.pop(idx)
-                else:
+            doRun = True
+            while doRun:
+                scrapingItem = WorkerThread.getScrapingEntity()
+                if scrapingItem == None:
                     doRun = False
-                if len(self.queryItems) % 10 == 0:
-                    print "Left in queue:", len(self.queryItems)
+                else:
+                    scr = 'http://zakupki.gov.ru/epz/order/quicksearch/update.html?placeOfSearch=FZ_44&_placeOfSearch=on&placeOfSearch=FZ_223&_placeOfSearch=on&_placeOfSearch=on&priceFrom=0&priceTo=200+000+000+000&publishDateFrom=&publishDateTo=&updateDateFrom=&updateDateTo=&orderStages=AF&_orderStages=on&orderStages=CA&_orderStages=on&orderStages=PC&_orderStages=on&orderStages=PA&_orderStages=on&sortDirection=false&sortBy=UPDATE_DATE&recordsPerPage=_50&pageNo=1&strictEqual=false&morphology=false&showLotsInfo=false&isPaging=false&isHeaderClick=&checkIds='
+                    # &searchString=%D0%90%D0%BA%D0%B0%D0%B4%D0%B5%D0%BC%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9+%D0%A0%D0%B0%D0%B9%D0%BE%D0%BD+%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D1%8B
+                    scr += '&searchString=' + urllib.quote(scrapingItem[1])
+                    self.scraper.scrapHeaders(self.dbSaver, scrapingItem[0], scr)
+                    self.dbSaver.touchQuery(scrapingItem[0])
 
-            if scrapingItem != None:
-                scr = 'http://zakupki.gov.ru/epz/order/quicksearch/update.html?placeOfSearch=FZ_44&_placeOfSearch=on&placeOfSearch=FZ_223&_placeOfSearch=on&_placeOfSearch=on&priceFrom=0&priceTo=200+000+000+000&publishDateFrom=&publishDateTo=&updateDateFrom=&updateDateTo=&orderStages=AF&_orderStages=on&orderStages=CA&_orderStages=on&orderStages=PC&_orderStages=on&orderStages=PA&_orderStages=on&sortDirection=false&sortBy=UPDATE_DATE&recordsPerPage=_10&pageNo=1&strictEqual=false&morphology=false&showLotsInfo=false&isPaging=false&isHeaderClick=&checkIds='
-                # &searchString=%D0%90%D0%BA%D0%B0%D0%B4%D0%B5%D0%BC%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B9+%D0%A0%D0%B0%D0%B9%D0%BE%D0%BD+%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D1%8B
-                scr += '&searchString=' + urllib.quote(scrapingItem[1])
-                self.scraper.scrapHeaders(self.dbSaver, scrapingItem[0], scr)
-                self.dbSaver.touchQuery(scrapingItem[0])
+        finally:
+            pass
 
 
-dbs = DBSaver()
-queries = dbs.getQueryStrings()
-print "dbs.getQueryStrings():", queries[:32]
+# PurchasesPostETL(vgDBS.conn).runQueriesList0(PurchasesPostETL.sqls1)
+
 threads = []
-for i in range(0, 12):
-    threads.append(WorkerThread(queries))
+threads.append(WorkerThread())
 
-print "threads:", threads
-for thread in threads:
-    thread.start()
+for i in range(0, len(threads)):
+    threads[i].start()
 
-for thread in threads:
-    thread.join()
+while len(vgScrapingEntities) > 0:
+    time.sleep(3)
+    print "Active threads:", threading.active_count()
+    if threading.active_count() < 10:
+        with(thread_lock):
+            wts = WorkerThread()
+            threads.append(wts)
+            wts.start()
+
+for t in threading.enumerate():
+    if t != threading.current_thread():
+        t.join()

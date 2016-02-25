@@ -12,68 +12,72 @@ import time
 from scraperPurchase import *
 
 thread_lock = threading.Lock()
-global running_threads_amount
+
+vgScrapingEntities = None
+vgDBS = DBSaver()
+
 
 class WorkerThread(threading.Thread):
-
-    def __init__(self, organizations):
+    def __init__(self):
         threading.Thread.__init__(self)
-        self.organizations = organizations
+        WorkerThread.loadScrapingEntities()
+
+    @staticmethod
+    def loadScrapingEntities():
+        global vgScrapingEntities
+        global vgDBS
+        if vgScrapingEntities == None or len(vgScrapingEntities) < threading.active_count():
+            with thread_lock:
+                vgScrapingEntities = vgDBS.getOrganizations(" (p_name IS NULL AND inn IS NOT NULL)")
+                print "Organizations: ", len(vgScrapingEntities), ":", vgScrapingEntities[:32]
+
+    @staticmethod
+    def getScrapingEntity():
+        global vgScrapingEntities
+        with thread_lock:
+            theObj = None
+            if len(vgScrapingEntities) > 0:
+                idx = random.randint(0, len(vgScrapingEntities) - 1)
+                theObj = vgScrapingEntities[idx]
+                vgScrapingEntities.pop(idx)
+            if len(vgScrapingEntities) % 10 == 0:
+                print "####Left in queue:", len(vgScrapingEntities), "threads:", threading.active_count()
+            return theObj
 
     def run(self):
-
-        global running_threads_amount
-        with(thread_lock):
-            running_threads_amount  += 1
         try:
             self.scraper = ScrapZakupkiGovRu('http://www.ya.ru')
             self.scraper.initializeWebdriver(useProxy=True)
             self.dbSaver = DBSaver()
 
             doRun = True
-
             while doRun:
-                theOrg = None
-                with(thread_lock):
-                    if len(self.organizations) > 0:
-                        idx = random.randint(0, len(self.organizations) - 1)
-                        theOrg = self.organizations[idx]
-                        self.organizations.pop(idx)
-                    else:
-                        doRun = False
-                    if len(self.organizations) % 10 == 0:
-                        print "Left in queue:", len(self.organizations), "overall"
+                theOrg = WorkerThread.getScrapingEntity()
+                if theOrg == None:
+                    doRun = False
 
-                if self.organizations != None:
-                    self.scraper.lookupOrganizationInfo(self.dbSaver, theOrg)
-                    # dbs.touchPurchaseContract(theOrg.purchaseContractId)
+                self.scraper.lookupOrganizationInfo(self.dbSaver, theOrg)
         finally:
-            with(thread_lock):
-                running_threads_amount  -= 1
+            pass
 
-dbs = DBSaver()
-PurchasesPostETL(dbs.conn).runQueriesList0(PurchasesPostETL.sqls1)
 
-orgs = dbs.getOrganizations(" (p_name IS NULL AND inn IS NOT NULL)")
-print orgs[:32]
+PurchasesPostETL(vgDBS.conn).runQueriesList0(PurchasesPostETL.sqls1)
 
 threads = []
-running_threads_amount = 0
-for i in range(0, 3):
-
-    threads.append(WorkerThread(orgs))
+threads.append(WorkerThread())
 
 for i in range(0, len(threads)):
     threads[i].start()
 
-while len(orgs) > 0:
+while len(vgScrapingEntities) > 0:
     time.sleep(3)
-    print "Active threads:", running_threads_amount, threading.active_count()
-    if running_threads_amount<8:
+    print "Active threads:", threading.active_count()
+    if threading.active_count() < 10:
         with(thread_lock):
-            wts = WorkerThread(orgs)
+            wts = WorkerThread()
             threads.append(wts)
             wts.start()
 
-for i in range(0, len(threads)):
-    threads[i].join()
+for t in threading.enumerate():
+    if t != threading.current_thread():
+        t.join()

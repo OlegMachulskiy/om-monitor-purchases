@@ -29,6 +29,9 @@ class PageParserPurchaseRequest:
     def readTabPurchaseData(self):
         # fullTextHTML = self.driver.page_source
         # open("file02.html", "w").write(fullTextHTML.encode('utf-8'))
+        element = WebDriverWait(self.driver, 20).until(
+            EC.presence_of_element_located((By.XPATH, '//div[@class="noticeTabBoxWrapper"]')))
+
         dataTRs = self.driver.find_elements_by_xpath(
             '//div[@class="noticeTabBoxWrapper"]/table/tbody/tr')
         d = {}
@@ -59,7 +62,8 @@ class PageParserPurchaseRequest:
         vProtocolFound = False
         protocolLikeLinks = self.driver.find_elements_by_xpath('//table[@class="noticeCardTableInBlock"]/tbody/tr/td/a')
         for href in protocolLikeLinks:
-            if u"protocolId=" in href.get_attribute("href"): ### FOUND ON THIS SERVER. Other Servers will have different URLs
+            if u"protocolId=" in href.get_attribute(
+                    "href"):  ### FOUND ON THIS SERVER. Other Servers will have different URLs
                 vProtocolFound = True
                 href.click()
                 break
@@ -79,7 +83,9 @@ class PageParserPurchaseRequest:
                 bidUrl = bidA.get_attribute("href")
                 self.dbSaver.storePurchaseBid(vPurchase.purchaseId, bidUrl)
         else:
-            print "There's no PROTOCOL_BID_LIST link here:", self.driver.current_url
+            eMsg = "There's no PROTOCOL_BID_LIST link here:" + self.driver.current_url
+            self.dbSaver.logErr(eMsg, Exception(eMsg))
+            print eMsg
             # filesList = self.readPurchaseFiles(vPurchase.purchaseId)
             # print "filesList:", filesList
             # self.dbSaver.storePurchaseFiles(vPurchase.purchaseId, filesList)
@@ -94,7 +100,12 @@ class PageParserPurchaseRequest:
 
         purchaseMap = self.readTabPurchaseData()
         # print "purchaseMap:", purchaseMap
-        self.dbSaver.storePurchaseData(vPurchase.purchaseId, purchaseMap)
+        if len(purchaseMap) > 0:
+            self.dbSaver.storePurchaseData(vPurchase.purchaseId, purchaseMap)
+        else:
+            ex = Exception("Data map returned for purchaseId is empty:" + str(vPurchase), self.driver.current_url)
+            self.dbSaver.logErr("Data map returned for purchaseId is empty", ex)
+            raise ex
 
         purchaseTabs = self.driver.find_elements_by_xpath(
             '//table[@class="contentTabsWrapper"]//td[@tab="PURCHASE_DOCS"]')
