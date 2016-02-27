@@ -5,13 +5,7 @@
 ##############################################################################################################
 
 import random
-import urllib
 import threading
-
-from scraperPurchase import *
-import random
-import threading
-import urllib
 import time
 
 from scraperPurchase import *
@@ -65,7 +59,8 @@ class WorkerThread(threading.Thread):
                     self.dbSaver.touchPurchase(scrapingItem.purchaseId)
 
         finally:
-            pass
+            if self.scraper != None: del self.scraper
+            if self.dbSaver != None: del self.dbSaver
 
 
 # PurchasesPostETL(vgDBS.conn).runQueriesList0(PurchasesPostETL.sqls1)

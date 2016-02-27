@@ -112,7 +112,7 @@ class ProxyFactory:
 
             select = self.driver.find_element_by_xpath('//select[@id="xpp"]')
             allOptions = select.find_elements_by_xpath("option")
-            for option in allOptions :
+            for option in allOptions:
                 if option.text == u'200':
                     option.click()
                     break
@@ -128,8 +128,37 @@ class ProxyFactory:
         finally:
             self.driver.close()
 
+    def updateProxyList04(self):
+        self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe")
+        try:
+            rv = []
+            pUrl = 'https://proxy-list.org/english/index.php'
+            print "updating proxies from:", pUrl
+            self.driver.get(pUrl)
+
+            vContinue = True
+            while vContinue:
+                rows = self.driver.find_elements_by_xpath('//div[@class="table"]/ul/li[@class="proxy"]')
+                for row in rows:
+                    addr = row.text
+                    if len(addr) > 0:
+                        rv.append(addr.encode("utf-8"))
+
+                nextLink = self.driver.find_elements_by_xpath('//div[@class="table-menu"]/a[@class="next"]')
+                if len(nextLink) > 0:
+                    nextLink[0].click()
+                    print "next page Clicked"
+                else:
+                    vContinue = False
+
+            print "DONE: updating proxies from:", pUrl, len(rv)
+            return set(rv)
+        finally:
+            self.driver.close()
+
     def updateProxiesInDB(self):
         lst = []
+        lst.extend(self.updateProxyList04())
         lst.extend(self.updateProxyList03())
         lst.extend(self.updateProxyList01())
         lst.extend(self.updateProxyList02())
@@ -147,4 +176,5 @@ class ProxyFactory:
             cur.close()
 
 
-# ProxyFactory().updateProxiesInDB()
+if __name__ == '__main__':
+    ProxyFactory().updateProxiesInDB()

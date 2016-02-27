@@ -6,10 +6,9 @@
 
 import random
 import threading
-import urllib
+import time
 
 from scraperPurchase import *
-import time
 
 thread_lock = threading.Lock()
 
@@ -59,7 +58,8 @@ class WorkerThread(threading.Thread):
                     self.scraper.scrapPurchaseContract(self.dbSaver, scrapingItem)
                     self.dbSaver.touchPurchaseContract(scrapingItem.purchaseContractId)
         finally:
-            pass
+            if self.scraper != None: del self.scraper
+            if self.dbSaver != None: del self.dbSaver
 
 
 PurchasesPostETL(vgDBS.conn).runQueriesList0(PurchasesPostETL.sqls1)
