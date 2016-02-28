@@ -11,8 +11,8 @@ from ProxyFactory import *
 
 
 class ScrapZakupkiGovRu:
-    def __init__(self, scrapingUrl):
-        self.scrapingUrl = scrapingUrl
+    def __init__(self):
+        pass
 
     def initializeWebdriver(self, useProxy=True):
         try:
@@ -21,16 +21,15 @@ class ScrapZakupkiGovRu:
             if useProxy:
                 proxyParams = ["--proxy=" + ProxyFactory().getRandomProxy()]
 
-
             self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe", service_args=proxyParams)
 
-            # self.driver.get(self.scrapingUrl)
             open("file00.html", "w").write(unicode(self.driver.page_source).encode('utf-8'))
         except HTTPError as e:
-            print(e)
+            traceback.print_last()
+            #print(e)
             raise (e)
         else:
-            print "Created webDriver for:" , self.scrapingUrl, proxyParams
+            print "Created webDriver:" , self.driver, proxyParams
 
     def __del__(self):
         if self.driver != None:

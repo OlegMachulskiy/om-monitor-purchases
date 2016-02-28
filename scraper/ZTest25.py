@@ -16,7 +16,7 @@ class ZTest25:
     def testNetworkx(self):
         g = nx.Graph()
         cur = self.dbSaver.conn.cursor()
-        names={}
+        names = {}
         try:
             cur.execute("SELECT partnerId, inn, p_name, category from tPartner")
             rows = cur.fetchall()
@@ -33,7 +33,13 @@ class ZTest25:
             print "Nodes added:", g.number_of_nodes()
             cur.execute("""
                 SELECT partnerId1, partnerId2, title from tPartnerRelation where partnerId2 NOT IN
-                        (select partnerId from tPartner where p_name in ('', 'Уставный капитал', 'Собственная доля предприятия', 'Учредители не заявлены', 'Департамент имущества города Москвы'))
+                        (select partnerId from tPartner where p_name in ('', 'Уставный капитал',
+                        'Собственная доля предприятия', 'Учредители не заявлены',
+                         'Департамент имущества города Москвы',
+                         'Правительство Российской Федерации, Указ Президента РФ от 20 мая 2004г. №649',
+                         'Правительство РФ, БУ', 'Департамент имущества города Москвы (государственное учреждение)',
+                         'Росимущество, Учреждение', 'Государственная Фельдъегерская Служба Российской Федерации'
+                         ) or inn in ('7710723134'))
             """)
             rows = cur.fetchall()
             for row in rows:
@@ -41,19 +47,41 @@ class ZTest25:
             print "Edges added:", g.number_of_nodes()
 
             concomps = nx.connected_components(g)
+            biggestComponent = []
             for comp in concomps:
                 print "connected_component:", comp
-                if len(comp)>10:
-                    for nds in comp:
-                        if len(g[nds])>5:
-                            print len(g[nds]), g[nds]
+                if len(comp) > len(biggestComponent):
+                    biggestComponent = comp
 
-            spath = nx.shortest_path(g, 101648, 104707)
-            for n in spath:
-                print "\t", names[n], (g[n])
+                    # spath = nx.shortest_path(g, 101648, 104707)
+                    # for n in spath:
+                    #     print "\t", names[n], (g[n])
+            print "biggestComponent=", biggestComponent
+
+            theConnNode = None
+            numConnections = 0
+            for nn in biggestComponent:
+                nbrs = nx.neighbors(g, nn)
+                print "analyzing node", nn, ", neighbours=", nbrs
+                if len(nbrs) > numConnections:
+                    theConnNode = nn
+                    numConnections = len(nbrs)
+                    print "switched to", theConnNode, numConnections
+            print "Finalist is ", self.nodeInfo(theConnNode), "neighnours:"
+            for nbr in nx.neighbors(g, theConnNode):
+                print "\t", self.nodeInfo(nbr)
 
         finally:
             self.dbSaver.conn.close()
+
+    def nodeInfo(self, partnerId):
+        cur = self.dbSaver.conn.cursor()
+        cur.execute(
+            "SELECT partnerId, inn, p_name, category from tPartner WHERE partnerId=%s",
+            [partnerId])
+        (ppId, inn, name, category) = cur.fetchone()
+        return "[" + str(partnerId) + "/" + str(inn) + "/" + str(name) + "/" + str(
+            category) + "]"
 
 
 ZTest25().testNetworkx()
