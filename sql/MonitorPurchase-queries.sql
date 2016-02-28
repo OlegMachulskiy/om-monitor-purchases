@@ -22,54 +22,6 @@ insert into tPurchaseDetails (purchaseId)
 	where not exists (select * from tPurchaseDetails  tpd1 where tpd1.purchaseId = tp.purchaseId))
 	
 
-update tPurchaseDetails p
-set title = (
-	select textValue512
-	from tPurchaseRawData pd join tMapping mp
-	on pd.keyName=mp.title and mp.tag='purchase_title' 
-	where pd.purchaseId=p.purchaseId), 
-responsible = (
-	select textValue512
-	from tPurchaseRawData pd join tMapping mp
-	on pd.keyName=mp.title and mp.tag='contact_person' 
-	where pd.purchaseId=p.purchaseId),
-contractAmountT = (
-	select textValue512
-	from tPurchaseRawData pd join tMapping mp
-	on pd.keyName=mp.title and mp.tag='purchase_amount' 
-	where pd.purchaseId=p.purchaseId),
-customerName = (
-	select textValue512
-	from tPurchaseRawData pd join tMapping mp
-	on pd.keyName=mp.title and mp.tag='purchase_customer' 
-	where pd.purchaseId=p.purchaseId limit 1), 
-stage = (
-	select textValue512
-	from tPurchaseRawData pd join tMapping mp
-	on pd.keyName=mp.title and mp.tag='purchase_stage' 
-	where pd.purchaseId=p.purchaseId limit 1),
-purchaseType = (
-	select textValue512
-	from tPurchaseRawData pd join tMapping mp
-	on pd.keyName=mp.title and mp.tag='purchase_type' 
-	where pd.purchaseId=p.purchaseId limit 1), 
-submitStartT = (
-	select textValue512
-	from tPurchaseRawData pd join tMapping mp
-	on pd.keyName like mp.title||'%' and mp.tag='submit_start' 
-	where pd.purchaseId=p.purchaseId limit 1), 
-submitFinishT = (
-	select textValue512
-	from tPurchaseRawData pd join tMapping mp
-	on pd.keyName like mp.title||'%' and mp.tag='submit_end' 
-	where pd.purchaseId=p.purchaseId limit 1),
-requestPublishedT = (
-	select textValue512
-	from tPurchaseRawData pd join tMapping mp
-	on pd.keyName like mp.title||'%' and mp.tag='request_published' 
-	where pd.purchaseId=p.purchaseId limit 1)
-;	
-
 
 
 SELECT pp.purchaseId,
@@ -249,3 +201,27 @@ where p2.p_name='Ермолаев Вячеслав Вячеславович'
 
 
 select * from tPurchaseBid
+
+
+        insert into tPurchaseTags (purchaseId, tagLabel)
+        select purchaseId, 'Гагаринский' from tPurchaseDetails pd
+        where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
+            (lower(title) like '%гагаринск%' OR lower(customername) like '%гагаринск%')
+        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Гагаринский');
+
+select * from tPurchaseDetails pd
+        where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
+            (lower(title) like '%гагаринск%' OR lower(customername) like '%гагаринск%')
+
+update tPurchase set lastUpdate = null where purchaseId in (
+select purchaseId from         tPurchaseDetails   where title is null);
+
+select distinct keyname, textvalue from         tPurchaseRawData where (lower(textValue) like '%москв%' OR lower(textValue) like '%москв%') AND
+            (lower(textValue) like '%гагаринск%' OR lower(textValue) like '%гагаринск%')
+
+select * from tPurchaseRawData where purchaseId=29091
+select * from tPurchaseDetails
+select count(1) from tPurchaseRawData union all
+select count(1)  from tPurchaseDetails WHERE purchaseId not in (select distinct purchaseId from tPurchaseRawData)
+
+select distinct exc_value from tErrorLog            
