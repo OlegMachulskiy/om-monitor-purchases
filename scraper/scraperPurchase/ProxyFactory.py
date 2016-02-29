@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import random
+# from numpy.random import choice
 
 from selenium import webdriver
 
 from DBSaver import *
-
+import bisect
 
 class ProxyFactory:
     plist = [
@@ -49,21 +50,64 @@ class ProxyFactory:
     def __init(self):
         pass
 
+
+
+# with stats as (
+# 	select proxy, avg(timeout) as avg_ok, count(timeout) as count_ok, 0 as avg_err, 0 as count_err from tHTTPProxyResult where result='Success' group by proxy
+# 	union all
+# 	select proxy, 0 as avg_ok, 0 as count_ok, avg(timeout)  as avg_err, count(timeout) as  count_err from tHTTPProxyResult where result is NULL OR result <>'Success' group by proxy
+# 	union all
+# 	select proxy, 10000 as avg_ok, 1 as count_ok, 10000 as avg_err, 1 as count_err from tHTTPProxies where proxy not in (select distinct proxy from tHTTPProxyResult)
+# ), stats1 as (
+# 	select proxy, sum(avg_ok) as avg_ok, sum(count_ok) as count_ok, sum(avg_err) as avg_err, sum(count_err) as count_err from stats group by proxy
+# ), weighted as
+# (
+# 	select proxy, avg_ok, count_ok, avg_err, count_err, count_err/count_ok as error_rate, 1000000/(avg_ok+avg_err)  as weight
+# 	from stats1 where count_ok > 0
+#
+# ) select proxy , weight/( 1 + error_rate) as weight1, avg_ok  from weighted
+# where proxy <> 'No_Proxy'
+# order by  weight1 desc
+
+
     def getRandomProxy(self, fromDb=True):
         if fromDb:
             dbs = DBSaver()
             cur = dbs.conn.cursor()
             try:
-                cur.execute("SELECT DISTINCT proxy FROM tHTTPProxies");
+                cur.execute("""
+
+with stats as (
+	select proxy, avg(timeout) as avg_ok, count(timeout) as count_ok, 0 as avg_err, 0 as count_err from tHTTPProxyResult where result='Success' group by proxy
+	union all
+	select proxy, 0 as avg_ok, 0 as count_ok, avg(timeout)  as avg_err, count(timeout) as  count_err from tHTTPProxyResult where result is NULL OR result <>'Success' group by proxy
+	union all
+	select proxy, 10000 as avg_ok, 1 as count_ok, 10000 as avg_err, 1 as count_err from tHTTPProxies where proxy not in (select distinct proxy from tHTTPProxyResult)
+), stats1 as (
+	select proxy, sum(avg_ok) as avg_ok, sum(count_ok) as count_ok, sum(avg_err) as avg_err, sum(count_err) as count_err from stats group by proxy
+), weighted as
+(
+	select proxy, avg_ok, count_ok, avg_err, count_err, (count_err)/(count_ok) as error_rate, 1000000/(avg_ok+avg_err)  as weight
+	from stats1
+	where count_ok > 0
+) select proxy , (weight/( 1 + error_rate))^2 as weight1, avg_ok , * from weighted
+where proxy <> 'No_Proxy'
+order by  weight1 desc
+
+                """);
                 res = cur.fetchall()
                 self.plist = []
+                self.weights = []
                 for prx in res:
                     self.plist.append(prx[0])
+                    self.weights.append(float(prx[1]))
+
+                idx = self.weighted_choice_king(self.weights)
+                return self.plist[idx]
+
             finally:
                 cur.close()
 
-        idx = random.randint(0, len(self.plist) - 1)
-        return self.plist[idx]
 
     def updateProxyList01(self):
         self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe")
@@ -175,6 +219,14 @@ class ProxyFactory:
         finally:
             cur.close()
 
+    def weighted_choice_king(self, weights):
+        total = 0
+        winner = 0
+        for i, w in enumerate(weights):
+            total += w
+            if random.random() * total < w:
+                winner = i
+        return winner
 
 if __name__ == '__main__':
     ProxyFactory().updateProxiesInDB()

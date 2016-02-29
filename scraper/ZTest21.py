@@ -1,23 +1,9 @@
 # -*- coding: utf-8 -*-
+from scraper.scraperPurchase import DBSaver, ScrapZakupkiGovRu
 
-##############################################################################################################
-### TEST NEW CODE: read existing list of purchase orders and load details
-##############################################################################################################
+dbSaver = DBSaver()
+scraper = ScrapZakupkiGovRu()
+scraper.initializeWebdriver(useProxy=False)
 
-from WorkerThread import *
-
-
-class WorkerDataFacadePR(AbstractWorkerDataFacade):
-    def getScrapingEntitiesFromDBS(self, dbSaver):
-        # raise Exception("method getScrapingEntitiesFromDBS must be implemented in a runner class")
-        return dbSaver.getPurchases(1)
-
-    def runScrapingForEntity(self, dbSaver, scraper, scrapingItem):
-        # raise Exception("method runScrapingForEntity must be implemented in a runner class")
-        # for example:
-        scraper.scrapOrderContent(dbSaver, scrapingItem)
-        dbSaver.touchPurchase(scrapingItem.purchaseId)
-
-
-df = WorkerDataFacadePR()
-WorkerThread.startScrapingEngine(df)
+scrapingItem = dbSaver.getPurchase(39075)
+scraper.scrapOrderContent(dbSaver, scrapingItem)

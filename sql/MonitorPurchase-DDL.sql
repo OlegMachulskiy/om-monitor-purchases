@@ -21,6 +21,7 @@ DROP TABLE tPurchase ;
 DROP TABLE tMapping ;
 DROP TABLE tSourceQueries;
 DROP TABLE tHTTPProxies;
+DROP TABLE  tHTTPProxyResult;
 	
 CREATE TABLE tErrorLog (
 	message VARCHAR(512) NULL, 
@@ -196,11 +197,19 @@ create table tHTTPProxies (
 );
 
 
+create table tHTTPProxyResult (
+	proxy	VARCHAR(36) NOT NULL, 
+	timeout	numeric(36), 
+	result VARCHAR(128) , 
+	_loadDate  timestamp default now()
+);
+
 delete from tMapping;
 insert into tMapping (title, tag) values ('Наименование закупки','purchase_title');
 insert into tMapping (title, tag) values ('Наименование объекта закупки','purchase_title');
 insert into tMapping (title, tag) values ('Заказчик','purchase_customer');
 insert into tMapping (title, tag) values ('Организация, осуществляющая закупку','purchase_customer');
+insert into tMapping (title, tag) values ('Закупку осуществляет','purchase_customer');
 insert into tMapping (title, tag) values ('Наименование организации','purchase_customer');
 insert into tMapping (title, tag) values ('Организация','contact_org');
 insert into tMapping (title, tag) values ('Контактное лицо','contact_person');
@@ -208,7 +217,6 @@ insert into tMapping (title, tag) values ('Ответственное должн
 insert into tMapping (title, tag) values ('Электронная почта','contact_email');
 insert into tMapping (title, tag) values ('Телефон','contact_phone');
 insert into tMapping (title, tag) values ('Начальная (максимальная) цена контракта','purchase_amount');
-insert into tMapping (title, tag) values ('Закупку осуществляет','purchase_customer');
 insert into tMapping (title, tag) values ('Этап закупки','purchase_stage');
 insert into tMapping (title, tag) values ('Способ размещения закупки','purchase_type');
 insert into tMapping (title, tag) values ('Способ определения поставщика (подрядчика, исполнителя)','purchase_type');

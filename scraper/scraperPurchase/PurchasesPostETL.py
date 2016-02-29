@@ -15,8 +15,9 @@ class PurchasesPostETL:
         set title = (
             select textValue512
             from tPurchaseRawData pd join tMapping mp
-            on pd.keyName=mp.title and mp.tag='purchase_title'
-            where pd.purchaseId=p.purchaseId)
+            on pd.keyName in ('Наименование закупки', 'Наименование объекта закупки')
+            where pd.purchaseId=p.purchaseId
+            limit 1)
 		"""
         ,
         """
@@ -25,7 +26,8 @@ class PurchasesPostETL:
             select textValue512
             from tPurchaseRawData pd join tMapping mp
             on pd.keyName=mp.title and mp.tag='contact_person'
-            where pd.purchaseId=p.purchaseId)
+            where pd.purchaseId=p.purchaseId
+            limit 1)
 		"""
         ,
         """
@@ -34,7 +36,8 @@ class PurchasesPostETL:
             select textValue512
             from tPurchaseRawData pd join tMapping mp
             on pd.keyName=mp.title and mp.tag='purchase_amount'
-            where pd.purchaseId=p.purchaseId)
+            where pd.purchaseId=p.purchaseId
+            limit 1)
 		"""
         ,
         """
@@ -43,7 +46,8 @@ class PurchasesPostETL:
             select textValue512
             from tPurchaseRawData pd join tMapping mp
             on pd.keyName=mp.title and mp.tag='purchase_customer'
-            where pd.purchaseId=p.purchaseId limit 1)
+            where pd.purchaseId=p.purchaseId
+            limit 1)
 		"""
         ,
         """
@@ -52,7 +56,8 @@ class PurchasesPostETL:
             select textValue512
             from tPurchaseRawData pd join tMapping mp
             on pd.keyName=mp.title and mp.tag='purchase_stage'
-            where pd.purchaseId=p.purchaseId limit 1)
+            where pd.purchaseId=p.purchaseId
+            limit 1)
 		"""
         ,
         """
@@ -61,7 +66,8 @@ class PurchasesPostETL:
             select textValue512
             from tPurchaseRawData pd join tMapping mp
             on pd.keyName=mp.title and mp.tag='purchase_type'
-            where pd.purchaseId=p.purchaseId limit 1)
+            where pd.purchaseId=p.purchaseId
+            limit 1)
         """
         ,
         """
@@ -70,7 +76,8 @@ class PurchasesPostETL:
             select textValue512
             from tPurchaseRawData pd join tMapping mp
             on pd.keyName like mp.title||'%' and mp.tag='submit_start'
-            where pd.purchaseId=p.purchaseId limit 1)
+            where pd.purchaseId=p.purchaseId
+            limit 1)
         """
         ,
         """
@@ -79,7 +86,8 @@ class PurchasesPostETL:
             select textValue512
             from tPurchaseRawData pd join tMapping mp
             on pd.keyName like mp.title||'%' and mp.tag='submit_end'
-            where pd.purchaseId=p.purchaseId limit 1)
+            where pd.purchaseId=p.purchaseId
+            limit 1)
         """
         ,
         """
@@ -88,7 +96,8 @@ class PurchasesPostETL:
             select textValue512
             from tPurchaseRawData pd join tMapping mp
             on pd.keyName like mp.title||'%' and mp.tag='request_published'
-            where pd.purchaseId=p.purchaseId limit 1)
+            where pd.purchaseId=p.purchaseId
+            limit 1)
         """
         ,
         """
@@ -115,59 +124,59 @@ class PurchasesPostETL:
         and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Раменки');
         """
         ,
-        """
-        insert into tPurchaseTags (purchaseId, tagLabel)
-        select purchaseId, 'Якутск' from tPurchaseDetails pd
-        where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
-            (lower(title) like '%якут%' OR lower(customername) like '%якут%')
-        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Якутск');
-        """,
-        """
-        insert into tPurchaseTags (purchaseId, tagLabel)
-        select purchaseId, 'Красноярск' from tPurchaseDetails pd
-        where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
-        (lower(title) like '%красноярск%' OR lower(customername) like '%красноярск%')
-        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Красноярск');
-        """,
-        """
-        insert into tPurchaseTags (purchaseId, tagLabel)
-        select purchaseId, 'Челябинск' from tPurchaseDetails pd
-        where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
-        (lower(title) like '%челябинск%' OR lower(customername) like '%челябинск%')
-        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Челябинск');
-        """
-        ,
-        """
-        insert into tPurchaseTags (purchaseId, tagLabel)
-        select purchaseId, 'МарийЭл' from tPurchaseDetails pd
-        where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
-        (lower(title) like '%марий%эл%' OR lower(customername) like '%марий%эл%' OR lower(title) like '%йошкар%ола%' OR lower(customername) like '%йошкар%ола%')
-        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='МарийЭл');
-        """
-        ,
-        """
-        insert into tPurchaseTags (purchaseId, tagLabel)
-        select purchaseId, 'Калининград' from tPurchaseDetails pd
-        where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
-        (lower(title) like '%калининград%' OR lower(customername) like '%калининград%')
-        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Калининград');
-        """,
-        """
-        insert into tPurchaseTags (purchaseId, tagLabel)
-        select purchaseId, 'Воронеж' from tPurchaseDetails pd
-        where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
-        (lower(title) like '%воронеж%' OR lower(customername) like '%воронеж%')
-        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Воронеж');
-        """
-        ,
-        """
-        insert into tPurchaseTags (purchaseId, tagLabel)
-        select purchaseId, 'Курск' from tPurchaseDetails pd
-        where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
-        (lower(title) like '%курск%' OR lower(customername) like '%курск%')
-        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Курск');
-        """
-        ,
+        # """
+        # insert into tPurchaseTags (purchaseId, tagLabel)
+        # select purchaseId, 'Якутск' from tPurchaseDetails pd
+        # where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+        #     (lower(title) like '%якут%' OR lower(customername) like '%якут%')
+        # and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Якутск');
+        # """,
+        # """
+        # insert into tPurchaseTags (purchaseId, tagLabel)
+        # select purchaseId, 'Красноярск' from tPurchaseDetails pd
+        # where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+        # (lower(title) like '%красноярск%' OR lower(customername) like '%красноярск%')
+        # and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Красноярск');
+        # """,
+        # """
+        # insert into tPurchaseTags (purchaseId, tagLabel)
+        # select purchaseId, 'Челябинск' from tPurchaseDetails pd
+        # where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+        # (lower(title) like '%челябинск%' OR lower(customername) like '%челябинск%')
+        # and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Челябинск');
+        # """
+        # ,
+        # """
+        # insert into tPurchaseTags (purchaseId, tagLabel)
+        # select purchaseId, 'МарийЭл' from tPurchaseDetails pd
+        # where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+        # (lower(title) like '%марий%эл%' OR lower(customername) like '%марий%эл%' OR lower(title) like '%йошкар%ола%' OR lower(customername) like '%йошкар%ола%')
+        # and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='МарийЭл');
+        # """
+        # ,
+        # """
+        # insert into tPurchaseTags (purchaseId, tagLabel)
+        # select purchaseId, 'Калининград' from tPurchaseDetails pd
+        # where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+        # (lower(title) like '%калининград%' OR lower(customername) like '%калининград%')
+        # and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Калининград');
+        # """,
+        # """
+        # insert into tPurchaseTags (purchaseId, tagLabel)
+        # select purchaseId, 'Воронеж' from tPurchaseDetails pd
+        # where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+        # (lower(title) like '%воронеж%' OR lower(customername) like '%воронеж%')
+        # and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Воронеж');
+        # """
+        # ,
+        # """
+        # insert into tPurchaseTags (purchaseId, tagLabel)
+        # select purchaseId, 'Курск' from tPurchaseDetails pd
+        # where (lower(title) not like '%москв%' AND lower(customername) not like '%москв%') AND
+        # (lower(title) like '%курск%' OR lower(customername) like '%курск%')
+        # and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Курск');
+        # """
+        # ,
         """
         insert into tPurchaseTags (purchaseId, tagLabel)
         select purchaseId, 'Университетский' from tPurchaseDetails pd

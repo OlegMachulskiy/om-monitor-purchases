@@ -31,12 +31,16 @@ class WorkerDataFacadePR(AbstractWorkerDataFacade):
         # scraper.scrapOrderContent(dbSaver, scrapingItem)
         # dbSaver.touchPurchase(scrapingItem.purchaseId)
         scraper.lookupOrganizationInfo(dbSaver, scrapingItem)
+        print "####### DONE FOR ", scrapingItem, " by ", threading.current_thread()
+
+    def getSIID(self, scrapingItem):
+        return str(scrapingItem.partnerId)
 
 
 PurchasesPostETL(DBSaver().conn).runQueriesList0(PurchasesPostETL.sqls1)
 
 df = WorkerDataFacadePR()
-WorkerThread.startScrapingEngine(df)
+WorkerThread.startScrapingEngine(df, threadsCount=19)
 
 
 

@@ -58,6 +58,9 @@ where purchaseId in (select purchaseId from tPurchaseTags WHERE tagLabel in ('Г
 group by winnerName order by 2 desc
 ;
 
+delete from tPurchaseTags
+
+
 select * from tPurchase vp  
 	join tPurchaseContracts pcc on vp.purchaseId = pcc.purchaseId 
 	join tPurchaseDetails ppd on vp.purchaseId =ppd.purchaseId 
@@ -200,7 +203,7 @@ join tPartner p2 on tpr.partnerId2 = p2.partnerId
 where p2.p_name='Ермолаев Вячеслав Вячеславович'
 
 
-select * from tPurchaseBid
+select * from tPurchaseBid  order by _loadDate desc
 
 
         insert into tPurchaseTags (purchaseId, tagLabel)
@@ -225,3 +228,44 @@ select count(1) from tPurchaseRawData union all
 select count(1)  from tPurchaseDetails WHERE purchaseId not in (select distinct purchaseId from tPurchaseRawData)
 
 select distinct exc_value from tErrorLog            
+
+
+
+select * from tPurchaseRawData where purchaseId=39075
+select *
+            from tPurchaseRawData pd 
+            WHERE pd.keyName in ('Наименование закупки', 'Наименование объекта закупки')
+            AND purchaseId=39075
+
+select * from tPurchase where purchaseId=39075
+
+select count(1)  from tPurchaseRawData
+delete from tPurchaseFiles
+delete from tPurchaseContracts
+
+select * from tHTTPProxyResult order by _loadDate desc
+
+
+with stats as (
+	select proxy, avg(timeout) as avg_ok, count(timeout) as count_ok, 0 as avg_err, 0 as count_err from tHTTPProxyResult where result='Success' group by proxy 
+	union all
+	select proxy, 0 as avg_ok, 0 as count_ok, avg(timeout)  as avg_err, count(timeout) as  count_err from tHTTPProxyResult where result is NULL OR result <>'Success' group by proxy 
+	union all 
+	select proxy, 10000 as avg_ok, 1 as count_ok, 10000 as avg_err, 1 as count_err from tHTTPProxies where proxy not in (select distinct proxy from tHTTPProxyResult)
+), stats1 as (
+	select proxy, sum(avg_ok) as avg_ok, sum(count_ok) as count_ok, sum(avg_err) as avg_err, sum(count_err) as count_err from stats group by proxy
+), weighted as 
+(
+	select proxy, avg_ok, count_ok, avg_err, count_err, (count_err)/(count_ok) as error_rate, 1000000/(avg_ok+avg_err)  as weight
+	from stats1 
+	where count_ok > 0
+) select proxy , (weight/( 1 + error_rate))^2 as weight1, avg_ok , * from weighted 
+where proxy <> 'No_Proxy'
+order by  weight1 desc
+
+
+
+--#update tPurchase set lastUpdate=NULL where not exists (select purchaseId from tPurchaseRawData where tPurchaseRawData.purchaseId=tPurchase.purchaseId)--
+select * from tPurchase where purchaseId=39459
+
+delete from tPurchaseTags

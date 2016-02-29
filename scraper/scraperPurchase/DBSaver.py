@@ -242,6 +242,24 @@ class DBSaver:
         finally:
             cur.close()
 
+    def getPurchase(self, purchaseId):
+
+        cur = self.conn.cursor()
+        try:
+            cur.execute(""" SELECT purchaseId, orderId, _url, _loadDate FROM tPurchase WHERE purchaseId=%s""",
+                        [purchaseId])
+
+            row = cur.fetchone()
+            vPur = Purchase()
+            vPur.purchaseId = row[0]
+            vPur.orderId = row[1]
+            vPur._url = row[2]
+            vPur._loadDate = row[3]
+
+            return vPur
+        finally:
+            cur.close()
+
     def getPurchaseContracts(self, depth=0, purchaseContractId=None):
         """
         :param depth: =0 - only new contracts
@@ -427,5 +445,13 @@ class DBSaver:
                             [bidId, purchaseId, bidUrl])
                 self.conn.commit()
                 return bidId
+        finally:
+            cur.close()
+
+    def storeHTTPProxyResult(self, proxy, timeout, result):
+        cur = self.conn.cursor()
+        try:
+            cur.execute("INSERT INTO tHTTPProxyResult (proxy, timeout, result) VALUES (%s, %s, %s)", [proxy, timeout, result[:127]])
+            self.conn.commit()
         finally:
             cur.close()

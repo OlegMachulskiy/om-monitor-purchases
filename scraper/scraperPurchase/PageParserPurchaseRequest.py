@@ -16,6 +16,7 @@ class PageParserPurchaseRequest:
         # fullTextHTML = self.driver.page_source
         # open("file03.html", "w").write(fullTextHTML.encode('utf-8'))
         rv = []
+
         dataAs = self.driver.find_elements_by_xpath(
             '//table[@id="notice-documents"]//table//td[@style="width: 100%"]/a')
         for dA in dataAs:
@@ -30,8 +31,6 @@ class PageParserPurchaseRequest:
     def readTabPurchaseData(self):
         # fullTextHTML = self.driver.page_source
         # open("file02.html", "w").write(fullTextHTML.encode('utf-8'))
-        element = WebDriverWait(self.driver, 20).until(
-            EC.presence_of_element_located((By.XPATH, '//div[@class="noticeTabBoxWrapper"]')))
 
         dataTRs = self.driver.find_elements_by_xpath(
             '//div[@class="noticeTabBoxWrapper"]/table/tbody/tr')
@@ -98,6 +97,9 @@ class PageParserPurchaseRequest:
         #
         # self.driver.switch_to_window(main_window)
         self.driver.get(vPurchase._url)
+        element = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, '//div[@class="noticeTabBoxWrapper"]')))
+
 
         purchaseMap = self.readTabPurchaseData()
         # print "purchaseMap:", purchaseMap
@@ -113,6 +115,10 @@ class PageParserPurchaseRequest:
             '//table[@class="contentTabsWrapper"]//td[@tab="PURCHASE_DOCS"]')
         if len(purchaseTabs) > 0:
             purchaseTabs[0].click()
+
+            element = WebDriverWait(self.driver, 20).until(
+                EC.presence_of_element_located((By.XPATH, '//table[@id="notice-documents"]')))
+
             filesList = self.readPurchaseFiles(vPurchase.purchaseId)
             print "filesList:", filesList
             self.dbSaver.storePurchaseFiles(vPurchase.purchaseId, filesList)
@@ -123,6 +129,12 @@ class PageParserPurchaseRequest:
             '//table[@class="contentTabsWrapper"]//td[@tab="SUPPLIER_RESULTS"]')
         if len(resultsTab) > 0:
             resultsTab[0].click()
+
+            element = WebDriverWait(self.driver, 20).until(
+                EC.presence_of_element_located((By.XPATH, '//table[@id="contract"]/tbody/tr')))
+
+
+
             self.readTabSupplierResults(vPurchase)
         else:
             print "There's no SUPPLIER_RESULTS tab here:", vPurchase._url
