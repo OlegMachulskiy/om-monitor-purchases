@@ -36,6 +36,9 @@ class WorkerDataFacadePR(AbstractWorkerDataFacade):
     def getSIID(self, scrapingItem):
         return str(scrapingItem.partnerId)
 
+    def defaultHttpTimeout(self):
+        return 50
+
 
 PurchasesPostETL(DBSaver().conn).runQueriesList0(PurchasesPostETL.sqls1)
 

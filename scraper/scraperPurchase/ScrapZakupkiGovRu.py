@@ -14,7 +14,7 @@ class ScrapZakupkiGovRu:
     def __init__(self):
         pass
 
-    def initializeWebdriver(self, useProxy=True):
+    def initializeWebdriver(self, useProxy=True, defaultHttpTimeout=30):
         prxAddr = "No_Proxy"
         try:
             # self.driver = webdriver.Firefox()
@@ -23,17 +23,18 @@ class ScrapZakupkiGovRu:
                 prxAddr = ProxyFactory().getRandomProxy()
                 proxyParams = ["--proxy=" + prxAddr]
 
-            self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe", service_args=proxyParams)
-            self.driver .implicitly_wait(30)
-            self.driver .set_page_load_timeout(30)
+            self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe",
+                                              service_args=proxyParams)
+            self.driver.implicitly_wait(defaultHttpTimeout)
+            self.driver.set_page_load_timeout(defaultHttpTimeout)
 
             open("file00.html", "w").write(unicode(self.driver.page_source).encode('utf-8'))
         except HTTPError as e:
             traceback.print_last()
-            #print(e)
+            # print(e)
             raise (e)
         else:
-            print "Created webDriver:" , self.driver, proxyParams
+            print "Created webDriver:", self.driver, proxyParams
         return prxAddr
 
     def __del__(self):
@@ -74,7 +75,7 @@ class ScrapZakupkiGovRu:
                 print '  Jump next page', queryId, threading.current_thread()
                 nextLinks[0].click()
                 element = WebDriverWait(self.driver, 20).until(
-                        EC.presence_of_element_located((By.XPATH, '//div[@class="registerBox"]/table/tbody')))
+                    EC.presence_of_element_located((By.XPATH, '//div[@class="registerBox"]/table/tbody')))
             else:
                 vContinue = False
 

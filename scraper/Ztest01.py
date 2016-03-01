@@ -23,6 +23,8 @@ class WorkerDataFacadePR(AbstractWorkerDataFacade):
     def getSIID(self, scrapingItem):
         return str(scrapingItem.purchaseId)
 
+    def collectProxyStats(self):
+        return True
 
 df = WorkerDataFacadePR()
-WorkerThread.startScrapingEngine(df, threadsCount=10)
+WorkerThread.startScrapingEngine(df, threadsCount=20)

@@ -80,19 +80,23 @@ class WorkerThread(threading.Thread):
                     scraper = None
                     try:
                         scraper = ScrapZakupkiGovRu()
-                        proxyAddr = scraper.initializeWebdriver(useProxy=True)
+                        proxyAddr = scraper.initializeWebdriver(useProxy=self.workerDataFacade.useProxy(),
+                                                                defaultHttpTimeout=self.workerDataFacade.defaultHttpTimeout())
                         self.workerDataFacade.runScrapingForEntity(dbSaver, scraper,
                                                                    scrapingItem)
 
-                        dbSaver.storeHTTPProxyResult(proxyAddr, int(round(time.time() * 1000)) - current_milli_time,
-                                                     "Success")
+                        if self.workerDataFacade.collectProxyStats():
+                            dbSaver.storeHTTPProxyResult(proxyAddr, int(round(time.time() * 1000)) - current_milli_time,
+                                                         "Success")
                     finally:
                         if scraper != None:    del scraper
                         if scrapingItem != None:
                             vgEntitiesInProgress.remove(self.workerDataFacade.getSIID(scrapingItem))
 
         except Exception as ex:
-            dbSaver.storeHTTPProxyResult(proxyAddr, int(round(time.time() * 1000)) - current_milli_time, str(ex))
+            traceback.print_exc()
+            if self.workerDataFacade.collectProxyStats():
+                dbSaver.storeHTTPProxyResult(proxyAddr, int(round(time.time() * 1000)) - current_milli_time, str(ex))
             dbSaver.logErr("Failure", ex)
             raise ex
         finally:
@@ -146,3 +150,12 @@ class AbstractWorkerDataFacade:
     def getSIID(self, scrapingItem):
         raise Exception(
             "method getSIID must be implemented in a runner class")
+
+    def collectProxyStats(self):
+        return False
+
+    def defaultHttpTimeout(self):
+        return 30
+
+    def useProxy(self):
+        return True

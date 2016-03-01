@@ -33,11 +33,11 @@ class WorkerDataFacadePR(AbstractWorkerDataFacade):
     def getSIID(self, scrapingItem):
         return str(scrapingItem.purchaseContractId)
 
+    def collectProxyStats(self):
+        return True
+
 
 PurchasesPostETL(DBSaver().conn).runQueriesList0(PurchasesPostETL.sqls1)
 
 df = WorkerDataFacadePR()
 WorkerThread.startScrapingEngine(df, threadsCount=10)
-
-
-
