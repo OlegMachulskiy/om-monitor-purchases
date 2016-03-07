@@ -27,14 +27,15 @@ class DBSaver:
             (exc_type, exc_value, exc_tracebackObj) = exc
             exc_traceback = traceback.extract_tb(exc_tracebackObj)
         cur = self.conn.cursor()
-        print "logErr:Exception:", (str(msg.encode('utf-8')), str(exc_type), str(exc_value),
-                                    traceback.format_list(exc_traceback))
-        cur.execute("""insert into tErrorLog (message, exc_type, exc_value, exc_traceback) values (%s, %s, %s, %s)
-                """, (
-            str(msg.encode('utf-8'))[:500], str(exc_type)[:500], str(exc_value)[:500],
-            traceback.format_list(exc_traceback)))
-        self.conn.commit()
-        cur.close()
+        try:
+            print "logErr:Exception:", (str(msg.encode('utf-8')), str(exc_type), str(exc_value))
+            cur.execute("""insert into tErrorLog (message, exc_type, exc_value, exc_traceback) values (%s, %s, %s, %s)
+                    """, (
+                str(msg.encode('utf-8'))[:500], str(exc_type)[:500], str(exc_value)[:500],
+                traceback.format_list(exc_traceback)))
+            self.conn.commit()
+        finally:
+            cur.close()
 
     def storePurchase(self, orderId, url):
         """
@@ -225,7 +226,7 @@ class DBSaver:
             prms = []
             if depth >= 1:
                 sql += """ or lastUpdate<=%s """
-                prms.append(datetime.datetime.today() - timedelta(days=3))
+                prms.append(datetime.datetime.today() - timedelta(days=5))
             cur.execute(sql, prms)
 
             rv = []
@@ -273,7 +274,7 @@ class DBSaver:
                 prms = []
                 if depth >= 1:
                     sql += """ or lastUpdate<=%s """
-                    prms.append(datetime.datetime.today() - timedelta(days=3))
+                    prms.append(datetime.datetime.today() - timedelta(days=5))
                 cur.execute(sql, prms)
             else:
                 sql = """ SELECT purchaseContractId, purchaseId, url, contractNo, customerName, winnerName, priceT, pushishDateT, _loadDate FROM tPurchaseContracts WHERE purchaseContractId=%s """
@@ -451,7 +452,8 @@ class DBSaver:
     def storeHTTPProxyResult(self, proxy, timeout, result):
         cur = self.conn.cursor()
         try:
-            cur.execute("INSERT INTO tHTTPProxyResult (proxy, timeout, result) VALUES (%s, %s, %s)", [proxy, timeout, result[:127]])
+            cur.execute("INSERT INTO tHTTPProxyResult (proxy, timeout, result) VALUES (%s, %s, %s)",
+                        [proxy, timeout, result[:127]])
             self.conn.commit()
         finally:
             cur.close()

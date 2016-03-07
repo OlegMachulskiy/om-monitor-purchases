@@ -34,19 +34,15 @@ class CreateExcelReport:
         # rc = self.writePrefekturaUSAOWinnersSheet(cur, wb)
         # print "writePrefekturaUSAOWinnersSheet: DONE", rc
 
-        rc = self.writeErrorsSheet(cur, wb)
-        print "writeErrorsSheet: DONE", rc
+        rc = self.writeMetaSheets(cur, wb)
 
         # Save the file
         wb.save("purchases.xlsx")
         cur.close()
         print "saved: purchases.xlsx"
 
-    def writeErrorsSheet(self, cur, wb):
-        rowCount = 0
-        ws = wb.create_sheet()
-        ws.title = "Scraping Errors"
-        cur.execute("""
+    def writeMetaSheets(self, cur, wb):
+        self.writeSQLSheet(cur, wb, "Scraping Errors", """
 SELECT message,
        exc_type,
        exc_value,
@@ -62,6 +58,41 @@ GROUP BY message,
 ORDER BY numErrors DESC,
          max_date DESC
 		""")
+        print "write Scraping Errors: done"
+
+        self.writeSQLSheet(cur, wb, "Last1000Errors", """SELECT * FROM tErrorLog  ORDER BY loadDate desc LIMIT 1000""")
+        print "write Last1000Errors: done"
+
+        self.writeSQLSheet(cur, wb, "ProxyStats", """
+with httpRes as (
+	select 	proxy,
+		to_char(_loadDate, 'YYYY-MM-DD') as dt,
+		CASE
+			WHEN result like 'Success%' THEN True
+			ELSE FALSE
+		END as Suceeded
+	from tHTTPProxyResult
+	order by _loadDate desc
+), htGrp as (
+	select proxy, dt, count(proxy) as succ , 0 as fail
+	from httpRes where Suceeded group by proxy, dt
+	union all
+	select proxy, dt, 0 as succ , count(proxy) as fail
+	from httpRes where NOT Suceeded group by proxy, dt
+)
+select proxy, dt, sum(succ) as succ, sum(fail) as fails, sum(succ)/(sum(succ) + sum(fail)) as successRate
+from htGrp
+group by proxy, dt
+""")
+        print "write ProxyStats: done"
+
+
+
+    def writeSQLSheet(self, cur, wb, sheetName, sql):
+        rowCount = 0
+        ws = wb.create_sheet()
+        ws.title = sheetName
+        cur.execute(sql)
         rows = cur.fetchall()
         ws.append([desc[0] for desc in cur.description])
         for row in rows:
@@ -70,8 +101,9 @@ ORDER BY numErrors DESC,
             rowCount += 1
 
         ws.auto_filter.ref = "A:Z"
-        ws.auto_filter.add_filter_column(0, ['Fatal*'], False)
+        # ws.auto_filter.add_filter_column(0, ['Fatal*'], False)
         return rowCount
+
 
     def writeGagarinskiySheet(self, cur, wb):
         rowCount = 0

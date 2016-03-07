@@ -52,14 +52,22 @@ class OrganizationFinder:
                 '//div[@class="cCard__Director"]/div[@class="cCard__Director-Name"]')
             if len(dirNames) > 0:
                 vOrg.directorName = dirNames[0].text
-                vOrg.directorPosition = self.driver.find_element_by_xpath(
-                    '//div[@class="cCard__Director"]/div[@class="cCard__Director-Position"]').text
+                dirPos = self.driver.find_elements_by_xpath(
+                    '//div[@class="cCard__Director"]/div[@class="cCard__Director-Position"]')
+                if len(dirPos)>0:
+                    vOrg.directorPosition = dirPos[0].text
+                else:
+                    vOrg.directorPosition = None
                 owners.append([vOrg.directorName, vOrg.directorPosition, None])
             else:
                 vOrg.directorName = None
                 vOrg.directorPosition = None
 
-            vOrg.address = self.driver.find_element_by_xpath('//div[@class="cCard__Contacts-Address"]').text
+            contactsAddress = self.driver.find_elements_by_xpath('//div[@class="cCard__Contacts-Address"]')
+            if len(contactsAddress)>0:
+                vOrg.address = contactsAddress[0].text
+            else:
+                vOrg.address = None
 
             ownerDivs = self.driver.find_elements_by_xpath(
                 '//div[@class="cCard__Owners-OwnerList"]/div[@class="cCard__Owners-OwnerList-Name"]')

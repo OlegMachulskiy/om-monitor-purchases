@@ -24,17 +24,17 @@ class WorkerThread(threading.Thread):
     def __init__(self, workerDataFacade):
         threading.Thread.__init__(self)
         self.workerDataFacade = workerDataFacade
-        self.loadScrapingEntities()
-
-    def loadScrapingEntities(self):
         global vgScrapingEntities
-        if vgScrapingEntities == None or len(
-                vgScrapingEntities) < threading.active_count():
-            with thread_lock:
+        global thread_lock
+
+        with thread_lock:
+            if vgScrapingEntities == None \
+                    or len(vgScrapingEntities) < threading.active_count() \
+                    or len(vgScrapingEntities) % 100 == 0:
                 dbs = DBSaver()
                 try:
                     vgScrapingEntities = self.workerDataFacade.getScrapingEntitiesFromDBS(dbs)
-                    print "vgScrapingEntities: ", len(
+                    print "re-read vgScrapingEntities: ", len(
                         vgScrapingEntities), ":", vgScrapingEntities[:32]
                 finally:
                     del dbs
@@ -43,6 +43,8 @@ class WorkerThread(threading.Thread):
     def getScrapingEntity(workerDataFacade):
         global vgScrapingEntities
         global vgEntitiesInProgress
+        global thread_lock
+
         with thread_lock:
             theObj = None
             if len(vgScrapingEntities) > 0:
@@ -94,10 +96,10 @@ class WorkerThread(threading.Thread):
                             vgEntitiesInProgress.remove(self.workerDataFacade.getSIID(scrapingItem))
 
         except Exception as ex:
-            traceback.print_exc()
+            # traceback.print_exc()
             if self.workerDataFacade.collectProxyStats():
-                dbSaver.storeHTTPProxyResult(proxyAddr, int(round(time.time() * 1000)) - current_milli_time, str(ex))
-            dbSaver.logErr("Failure", ex)
+                dbSaver.storeHTTPProxyResult(proxyAddr, int(round(time.time() * 1000)) - current_milli_time, str(ex)+":"+self.workerDataFacade.getSIID(scrapingItem))
+            dbSaver.logErr("Failure:"+self.workerDataFacade.getSIID(scrapingItem) , sys.exc_info())
             raise ex
         finally:
             if dbSaver != None:
@@ -108,6 +110,7 @@ class WorkerThread(threading.Thread):
     def startScrapingEngine(workerDataFacade, threadsCount=8):
         global vgScrapingEntities
         global vgEntitiesInProgress
+        global thread_lock
 
         wts = WorkerThread(workerDataFacade)
         wts.start()
@@ -125,9 +128,8 @@ class WorkerThread(threading.Thread):
             #     print()
 
             if threading.active_count() < threadsCount:
-                with(thread_lock):
-                    wts = WorkerThread(workerDataFacade)
-                    wts.start()
+                wts = WorkerThread(workerDataFacade)
+                wts.start()
 
         for t in threading.enumerate():
             if t != threading.current_thread():
@@ -155,7 +157,7 @@ class AbstractWorkerDataFacade:
         return False
 
     def defaultHttpTimeout(self):
-        return 30
+        return 50
 
     def useProxy(self):
         return True

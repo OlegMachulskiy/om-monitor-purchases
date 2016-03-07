@@ -40,4 +40,4 @@ class WorkerDataFacadePR(AbstractWorkerDataFacade):
 PurchasesPostETL(DBSaver().conn).runQueriesList0(PurchasesPostETL.sqls1)
 
 df = WorkerDataFacadePR()
-WorkerThread.startScrapingEngine(df, threadsCount=10)
+WorkerThread.startScrapingEngine(df, threadsCount=15)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import sys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC  # available since 2.26.0
 from selenium.webdriver.support.ui import WebDriverWait  # available since 2.4.0
@@ -68,77 +68,74 @@ class PageParserPurchaseRequest:
                 href.click()
                 break
 
-        if vProtocolFound:
-            element = WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, '//td[@tab="PROTOCOL_BID_LIST"]')))
+        try:
+            element = WebDriverWait(self.driver, 20).until(
+                EC.presence_of_element_located(
+                    (By.XPATH, '//td[@tab="PROTOCOL_BID_LIST" or @tab="PROTOCOL_BID_LOT_LIST"]')))
 
             element.click()
 
-            element = WebDriverWait(self.driver, 10).until(
+            element = WebDriverWait(self.driver, 20).until(
                 EC.presence_of_element_located(
-                    (By.XPATH, '//table[@id="protocolBid"]/tbody/tr/td[@class="firstTd"]/a')))
+                    (By.XPATH,
+                     '//table[@id="protocolBid"]/tbody/tr/td[@class="firstTd" or @class="center descriptTenderTd"]//a')))
 
-            bids = self.driver.find_elements_by_xpath('//table[@id="protocolBid"]/tbody/tr/td[@class="firstTd"]/a')
+            bids = self.driver.find_elements_by_xpath('//table[@id="protocolBid"]/tbody/tr/td[@class="firstTd"]//a')
             for bidA in bids:
                 bidUrl = bidA.get_attribute("href")
                 self.dbSaver.storePurchaseBid(vPurchase.purchaseId, bidUrl)
-        else:
+        except Exception as ex:
             eMsg = "There's no PROTOCOL_BID_LIST link here:"
-            print eMsg
-            self.dbSaver.logErr(eMsg, Exception(eMsg + self.driver.current_url))
+            self.dbSaver.logErr(eMsg + self.driver.current_url, sys.exc_info())
             # filesList = self.readPurchaseFiles(vPurchase.purchaseId)
             # print "filesList:", filesList
             # self.dbSaver.storePurchaseFiles(vPurchase.purchaseId, filesList)
 
     def scrapOrderContent(self, vPurchase):
-        # do the following for purchases only once per sevral days
+        # do the following for purchases only once per several days
         # ActionChains(self.driver).key_down(Keys.CONTROL).click(orderA).key_up(Keys.CONTROL).perform()
         # self.driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.TAB)
         #
         # self.driver.switch_to_window(main_window)
         self.driver.get(vPurchase._url)
-        element = WebDriverWait(self.driver, 10).until(
+        element = WebDriverWait(self.driver, 20).until(
             EC.presence_of_element_located((By.XPATH, '//div[@class="noticeTabBoxWrapper"]')))
-
 
         purchaseMap = self.readTabPurchaseData()
         # print "purchaseMap:", purchaseMap
         if len(purchaseMap) > 0:
             self.dbSaver.storePurchaseData(vPurchase.purchaseId, purchaseMap)
         else:
-            msg = "Data map returned for purchaseId is empty:"
+            msg = "Error: empty data map for purchase:"
             ex = Exception(msg + str(vPurchase))
             self.dbSaver.logErr(msg, ex)
             raise ex
 
         purchaseTabs = self.driver.find_elements_by_xpath(
             '//table[@class="contentTabsWrapper"]//td[@tab="PURCHASE_DOCS"]')
-        if len(purchaseTabs) > 0:
+        try:
             purchaseTabs[0].click()
 
             element = WebDriverWait(self.driver, 20).until(
                 EC.presence_of_element_located((By.XPATH, '//table[@id="notice-documents"]')))
 
             filesList = self.readPurchaseFiles(vPurchase.purchaseId)
-            print "filesList:", filesList
+            # print "filesList:", filesList
             self.dbSaver.storePurchaseFiles(vPurchase.purchaseId, filesList)
-        else:
-            print "There's no PURCHASE_DOCS tab here:", vPurchase._url
+        except Exception as ex:
+            self.dbSaver.logErr("Warning: no PURCHASE_DOCS tab:" + vPurchase._url, sys.exc_info())
 
         resultsTab = self.driver.find_elements_by_xpath(
             '//table[@class="contentTabsWrapper"]//td[@tab="SUPPLIER_RESULTS"]')
-        if len(resultsTab) > 0:
+        try:
             resultsTab[0].click()
 
             element = WebDriverWait(self.driver, 20).until(
                 EC.presence_of_element_located((By.XPATH, '//table[@id="contract"]/tbody/tr')))
 
-
-
             self.readTabSupplierResults(vPurchase)
-        else:
-            print "There's no SUPPLIER_RESULTS tab here:", vPurchase._url
-
+        except Exception as ex:
+            self.dbSaver.logErr("Warning: no SUPPLIER_RESULTS tab:" + vPurchase._url, sys.exc_info())
 
             # self.driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + 'w')
             # self.driver.switch_to_window(main_window)

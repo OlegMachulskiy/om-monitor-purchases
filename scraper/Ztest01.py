@@ -27,4 +27,4 @@ class WorkerDataFacadePR(AbstractWorkerDataFacade):
         return True
 
 df = WorkerDataFacadePR()
-WorkerThread.startScrapingEngine(df, threadsCount=20)
+WorkerThread.startScrapingEngine(df, threadsCount=22)

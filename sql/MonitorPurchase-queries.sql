@@ -1,4 +1,6 @@
 ﻿------------
+select * from tSourceQueries order by 1;
+
 select * from tPurchase;
 select * from tPurchaseData;
 
