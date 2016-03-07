@@ -82,6 +82,8 @@ CREATE TABLE tPurchaseDetails (
 	contractAmount NUMERIC(20,2), /* Начальная (максимальная) цена контракта */
 	contractAmountT varchar(36), /* Начальная (максимальная) цена контракта строкой */
 	contractCurrency VARCHAR(36) NULL, 
+	customer_url	varchar(512),
+	customer_inn 	varchar(128),
 	PRIMARY KEY (purchaseId), 
 	FOREIGN KEY (purchaseId) REFERENCES tPurchase ON DELETE CASCADE
 );
