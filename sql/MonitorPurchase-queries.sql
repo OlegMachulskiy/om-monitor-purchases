@@ -271,3 +271,84 @@ order by  weight1 desc
 select * from tPurchase where purchaseId=39459
 
 delete from tPurchaseTags
+
+
+
+select * from tPartner where partnerId in (143460, 101229)
+
+select * from tPartnerRelation
+
+select distinct tagLabel from tPurchaseTags
+
+
+
+select * from tPartner where inn in (
+select distinct winnerINN from tPurchaseTags tpt 
+join tPurchaseDetails  tpd  on tpd.purchaseId=tpt.purchaseId
+left join tPurchaseContracts tpc on tpc.purchaseId=tpd.purchaseId
+where tpt.tagLabel in ('Гагаринский', 'ВоробьевыГоры','Академический') 
+and winnerINN is not null
+)
+
+--join tPurchaseDetails  tpd1  on tpd1.customerName=tpd.customerName
+/*, ,'ПрефектураЮЗАО' /*,'Вернадского','Университетский','Раменки','Ленинский')*/
+
+select * from tPurchaseContracts limit 100
+select * from tPurchase limit 100
+select * from tPurchaseDetails limit 100
+select * from tPartner limit 100
+select * from tOrganization limit 100
+select * from tContractRawData limit 100
+
+select * from tPurchase pp  JOIN tPurchaseDetails ppd ON pp.purchaseId = ppd.purchaseId where pp.purchaseId=6225
+select * from tPurchaseContracts  where purchaseId=6225
+select * from tPartner where inn='7736192449'
+
+
+update tPurchaseContracts p
+        set winnerINN = (
+            select textValue512
+            from tContractRawData crd join tMapping mp
+            on crd.purchaseContractId=p.purchaseContractId and keyName='participantInfoTable:ИНН:' limit 1)
+        where winnerINN  is null
+
+select * from tContractRawData where purchaseContractId=171877
+
+select * from tOrganization where partnerId=101505
+
+
+select * from tPurchaseBid where partnerId is not null
+select * from tPurchaseBidRawData
+
+select distinct textValue512 
+from tPurchaseBidRawData tbrd join tPurchaseBid tb ON tbrd.bidId=tb.bidId
+WHERE keyName='ИНН'
+
+
+
+
+select * from tPurchaseContracts tpc where winnerINN is not null
+and not exists (select 1 from tPurchaseBid           tpb where tpc.purchaseId=tpb.purchaseId)
+and lower(customerName) like '%моск%'
+
+
+SELECT bidId, purchaseId, url, partnerId FROM tPurchaseBid
+                WHERE 
+                 partnerId IS NULL                    
+                 OR 
+                bidId NOT IN (SELECT DISTINCT bidId FROM tPurchaseBidRawData)
+
+
+SELECT purchaseId, bidId, tpb.partnerId , inn, p_name, category 
+FROM tPurchaseBid tpb join tPartner tp on tpb.partnerId=tp.partnerId
+
+
+select * from tPurchase where purchaseId=110
+select * from tPurchaseDetails where purchaseId=110
+select * from tPurchaseBid where purchaseId=110
+update tPurchase set lastUpdate=Null where purchaseId=110
+
+
+select * from tPurchase where lastUpdate is null
+
+

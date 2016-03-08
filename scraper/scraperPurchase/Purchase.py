@@ -107,3 +107,16 @@ class Organization(Partner):
     def __init__(self):
         Partner.__init__(self)
         self.url_sbis = None
+
+class PurchaseBid:
+    def __init__(self):
+        self.bidId = None
+        self.purchaseId = None
+        self.partnerId = None
+        self.url = None
+
+    def __repr__(self):
+        rv = "<PurchaseBid:"
+        rv += str(self.bidId) + ', '
+        rv += str(self.url) + '>'
+        return rv.encode('utf-8')

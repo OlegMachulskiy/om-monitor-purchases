@@ -4,6 +4,7 @@ CREATE SEQUENCE idGen START 100 ;
 
 --DROP VIEW vPurchases;
 
+DROP TABLE tPurchaseBidRawData;
 DROP TABLE tPurchaseBid;
 DROP TABLE tPartnerURLQueue;
 DROP TABLE tContractRawData;
@@ -88,6 +89,7 @@ CREATE TABLE tPurchaseDetails (
 	FOREIGN KEY (purchaseId) REFERENCES tPurchase ON DELETE CASCADE
 );
 
+
 CREATE TABLE  tPurchaseRawData (
 	purchaseId numeric(36) NOT NULL, 
 	keyName	VARCHAR(512) NOT NULL, 
@@ -136,15 +138,6 @@ CREATE TABLE  tContractRawData (
 	FOREIGN KEY (purchaseContractId) REFERENCES tPurchaseContracts ON DELETE CASCADE
 );
 
--- DROP TABLE tPurchaseBid 
-CREATE TABLE tPurchaseBid (
-	bidId	numeric(36) NOT NULL, 
-	purchaseId numeric(36) NOT NULL, 
-	url	VARCHAR(512) NOT NULL, 
-	_loadDate  timestamp default now(),
-	PRIMARY KEY(bidId),
-	FOREIGN KEY (purchaseId) REFERENCES tPurchase ON DELETE CASCADE
-);
 
 CREATE TABLE  tPartner (
 	partnerId 	numeric(36) NOT NULL, 
@@ -176,6 +169,30 @@ CREATE TABLE  tPartnerRelation (
 	FOREIGN KEY (partnerId1) REFERENCES tPartner ON DELETE CASCADE,
 	FOREIGN KEY (partnerId2) REFERENCES tPartner ON DELETE CASCADE
 );
+
+-- DROP TABLE tPurchaseBid 
+CREATE TABLE tPurchaseBid (
+	bidId	numeric(36) NOT NULL, 
+	purchaseId numeric(36) NOT NULL, 
+	url	VARCHAR(512) NOT NULL, 
+	_loadDate  timestamp default now(),
+	partnerId	numeric(36),
+	PRIMARY KEY(bidId),
+	FOREIGN KEY (purchaseId) REFERENCES tPurchase ON DELETE CASCADE,
+	FOREIGN KEY (partnerId) REFERENCES tPartner ON DELETE RESTRICT
+);
+
+--DROP TABLE tPurchaseBidRawData;
+CREATE TABLE tPurchaseBidRawData (
+	bidId	numeric(36) NOT NULL, 
+	keyName	VARCHAR(512) NOT NULL, 
+	textValue	text,
+	textValue512	varchar(512),
+	_loadDate  timestamp default now(),
+	PRIMARY KEY	(bidId, keyName),
+	FOREIGN KEY 	(bidId) REFERENCES tPurchaseBid ON DELETE CASCADE
+);
+
 
 CREATE TABLE tPartnerURLQueue (
 	url_sbis	VARCHAR(512) 

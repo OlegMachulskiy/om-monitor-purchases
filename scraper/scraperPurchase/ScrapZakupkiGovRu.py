@@ -8,27 +8,30 @@ from PageParserPurchaseRequest import *
 from PageParserContract import *
 from OrganizationFinder import *
 from ProxyFactory import *
+from PageParserPurchaseBid import *
 
 
 class ScrapZakupkiGovRu:
     def __init__(self):
         pass
 
-    def initializeWebdriver(self, useProxy=True, defaultHttpTimeout=30):
+    def initializeWebdriver(self, useProxy=True, defaultHttpTimeout=30, useFirefoxDriver=False):
         prxAddr = "No_Proxy"
         try:
-            # self.driver = webdriver.Firefox()
             proxyParams = []
-            if useProxy:
-                prxAddr = ProxyFactory().getRandomProxy()
-                proxyParams = ["--proxy=" + prxAddr]
+            if useFirefoxDriver:
+                self.driver = webdriver.Firefox()
+            else:
+                if useProxy:
+                    prxAddr = ProxyFactory().getRandomProxy()
+                    proxyParams = ["--proxy=" + prxAddr]
 
-            self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe",
-                                              service_args=proxyParams)
-            self.driver.implicitly_wait(defaultHttpTimeout)
-            self.driver.set_page_load_timeout(defaultHttpTimeout)
+                self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe",
+                                                  service_args=proxyParams)
+                self.driver.implicitly_wait(defaultHttpTimeout)
+                self.driver.set_page_load_timeout(defaultHttpTimeout)
 
-            open("file00.html", "w").write(unicode(self.driver.page_source).encode('utf-8'))
+            # open("file00.html", "w").write(unicode(self.driver.page_source).encode('utf-8'))
         except HTTPError as e:
             traceback.print_last()
             # print(e)
@@ -90,3 +93,7 @@ class ScrapZakupkiGovRu:
     def lookupOrganizationInfo(self, dbSaver, vOrg):
         orgf = OrganizationFinder(dbSaver, self.driver)
         orgf.lookupOrganizationInfo(vOrg)
+
+    def scrapPurchaseBid(self, dbSaver, vBid):
+        ppb = PageParserPurchaseBid(dbSaver, self.driver)
+        ppb.scrapPurchaseBid(vBid)

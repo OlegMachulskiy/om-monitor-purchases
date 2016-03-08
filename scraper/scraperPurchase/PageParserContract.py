@@ -17,7 +17,7 @@ class PageParserContract:
         # open("file02.html", "w").write(fullTextHTML.encode('utf-8'))
         d = {}
         element = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, '//table[@class="participantInfoTable"]/tbody/tr')))
+            EC.presence_of_element_located((By.XPATH, '//div[@class="noticeTabBoxWrapper"]/table/tbody/tr')))
 
         dataTRs = self.driver.find_elements_by_xpath(
             '//div[@class="noticeTabBoxWrapper"]/table/tbody/tr')

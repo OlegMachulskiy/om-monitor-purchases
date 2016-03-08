@@ -260,10 +260,27 @@ class PurchasesPostETL:
         where not exists (select * from tPartner  tpd1 where tpd1.inn = tpc.winnerINN) and winnerINN is not null)
         """
         ,
+        """insert into tPartner (partnerId, inn, category)
+           (select nextval('idGen'), inn, 'O' from  (select distinct textValue512 as inn
+               from tPurchaseBidRawData tbrd join tPurchaseBid tb ON tbrd.bidId=tb.bidId
+               WHERE keyName='ИНН') tpc
+           WHERE not exists (select * from tPartner  tpd1 where tpd1.inn = tpc.inn) and inn is not null)
+            """
+        ,
+        """ UPDATE tPurchaseBid ubd SET partnerId=
+            (select distinct tp.partnerId
+            from tPurchaseBidRawData tbrd
+            join tPurchaseBid tb ON tbrd.bidId=tb.bidId AND keyName='ИНН'
+            JOIN tPartner tp ON tp.inn = tbrd.textValue512
+                        and tb.bidId=ubd.bidId
+                LIMIT 1)  """
+
+        ,
         """
         insert into tOrganization (partnerId)
         SELECT partnerId from  tPartner tpc where category='O' AND not exists (select * from tOrganization  tpd1 where tpd1.partnerId = tpc.partnerId)
         """
+
     ]
 
     def __init__(self, conn):

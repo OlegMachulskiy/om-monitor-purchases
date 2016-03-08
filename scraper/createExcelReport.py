@@ -86,7 +86,10 @@ group by proxy, dt
 """)
         print "write ProxyStats: done"
 
-
+        self.writeSQLSheet(cur, wb, "PotentialBIDs", """ select * from tPurchaseContracts tpc where winnerINN is not null
+and not exists (select 1 from tPurchaseBid           tpb where tpc.purchaseId=tpb.purchaseId)
+and lower(customerName) like '%моск%' order by price DESC LIMIT 500 """)
+        print "write PotentialBIDs: done"
 
     def writeSQLSheet(self, cur, wb, sheetName, sql):
         rowCount = 0
@@ -103,7 +106,6 @@ group by proxy, dt
         ws.auto_filter.ref = "A:Z"
         # ws.auto_filter.add_filter_column(0, ['Fatal*'], False)
         return rowCount
-
 
     def writeGagarinskiySheet(self, cur, wb):
         rowCount = 0

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from datetime import *
 
 import psycopg2
@@ -411,26 +413,26 @@ class DBSaver:
         finally:
             cur.close()
 
-    def pushPartnerURLQueue(self, url_sbis):
-        cur = self.conn.cursor()
-        try:
-            cur.execute("INSERT INTO tPartnerURLQueue (url_sbis) VALUES (%s)", [url_sbis])
-            self.conn.commit()
-        finally:
-            cur.close()
-
-    def pullPartnerURLQueue(self):
-        cur = self.conn.cursor()
-        try:
-            rv = []
-            cur.execute("SELECT DISTINCT url_sbis FROM tPartnerURLQueue WHERE url_sbis IS NOT NULL")
-            rows = cur.fetchall()
-            for row in rows:
-                rv.append(row[0])
-            cur.execute("DELETE FROM tPartnerURLQueue")
-            self.conn.commit()
-        finally:
-            cur.close()
+    # def pushPartnerURLQueue(self, url_sbis):
+    #     cur = self.conn.cursor()
+    #     try:
+    #         cur.execute("INSERT INTO tPartnerURLQueue (url_sbis) VALUES (%s)", [url_sbis])
+    #         self.conn.commit()
+    #     finally:
+    #         cur.close()
+    #
+    # def pullPartnerURLQueue(self):
+    #     cur = self.conn.cursor()
+    #     try:
+    #         rv = []
+    #         cur.execute("SELECT DISTINCT url_sbis FROM tPartnerURLQueue WHERE url_sbis IS NOT NULL")
+    #         rows = cur.fetchall()
+    #         for row in rows:
+    #             rv.append(row[0])
+    #         cur.execute("DELETE FROM tPartnerURLQueue")
+    #         self.conn.commit()
+    #     finally:
+    #         cur.close()
 
     def storePurchaseBid(self, purchaseId, bidUrl):
         cur = self.conn.cursor()
@@ -448,6 +450,69 @@ class DBSaver:
                 return bidId
         finally:
             cur.close()
+
+    def getPurchaseBids(self):
+        cur = self.conn.cursor()
+        try:
+            cur.execute(
+                """ SELECT bidId, purchaseId, url, partnerId FROM tPurchaseBid
+                WHERE partnerId IS NULL
+                    OR bidId NOT IN (SELECT DISTINCT bidId FROM tPurchaseBidRawData)""",
+                [datetime.datetime.today() - timedelta(days=5)])
+            rows = cur.fetchall()
+            rv = []
+            for row in rows:
+                bid = PurchaseBid()
+                bid.bidId = row[0]
+                bid.purchaseId = row[1]
+                bid.url = row[2]
+                bid.partnerId = row[3]
+                rv.append(bid)
+            return rv
+        finally:
+            cur.close()
+
+    def storePurchaseBidRawData(self, bidId, dataDict):
+        cur = self.conn.cursor()
+        try:
+            cur.execute("""DELETE FROM tPurchaseBidRawData where bidId=%s """, [bidId])
+
+            for key, value in dataDict.iteritems():
+                vKey = key[:500].encode('utf-8')
+                vValue = value.encode('utf-8')
+                vValue500 = value[:500].encode('utf-8')
+                cur.execute(
+                    """INSERT INTO tPurchaseBidRawData (bidId, keyName, textValue, textValue512 )
+                        VALUES (%s, %s, %s, %s) """,
+                    [bidId, vKey, vValue, vValue500])
+
+            self.conn.commit()
+        finally:
+            cur.close()
+
+    def updatePurchaseBidData(self, bidId):
+        cur = self.conn.cursor()
+        try:
+            cur.execute("""
+            insert into tPartner (partnerId, inn, category)
+            (select nextval('idGen'), inn, 'O' from  (select distinct textValue512 as inn
+                from tPurchaseBidRawData tbrd join tPurchaseBid tb ON tbrd.bidId=tb.bidId
+                WHERE keyName='ИНН' and tb.bidId=%s) tpc
+            WHERE not exists (select * from tPartner  tpd1 where tpd1.inn = tpc.inn) and inn is not null)
+             """, [bidId])
+
+            cur.execute(""" UPDATE tPurchaseBid ubd SET partnerId=
+                (select distinct tp.partnerId
+                from tPurchaseBidRawData tbrd
+                join tPurchaseBid tb ON tbrd.bidId=tb.bidId AND keyName='ИНН'
+                JOIN tPartner tp ON tp.inn = tbrd.textValue512
+                            and tb.bidId=ubd.bidId
+                    LIMIT 1) WHERE bidId=%s """, [bidId])
+
+            self.conn.commit()
+        finally:
+            cur.close()
+
 
     def storeHTTPProxyResult(self, proxy, timeout, result):
         cur = self.conn.cursor()

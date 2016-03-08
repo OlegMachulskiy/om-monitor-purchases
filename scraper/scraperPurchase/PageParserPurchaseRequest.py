@@ -45,6 +45,7 @@ class PageParserPurchaseRequest:
 
     def readTabSupplierResults(self, vPurchase):
         contractTableTRs = self.driver.find_elements_by_xpath('//table[@id="contract"]/tbody/tr')
+        ### list can be empty. Do not put driver-wait here
         for cttr in contractTableTRs:
             cttds = cttr.find_elements_by_xpath("td")
             url = cttds[0].find_elements_by_xpath('a')[1].get_attribute("href")
@@ -129,9 +130,6 @@ class PageParserPurchaseRequest:
             '//table[@class="contentTabsWrapper"]//td[@tab="SUPPLIER_RESULTS"]')
         try:
             resultsTab[0].click()
-
-            element = WebDriverWait(self.driver, 20).until(
-                EC.presence_of_element_located((By.XPATH, '//table[@id="contract"]/tbody/tr')))
 
             self.readTabSupplierResults(vPurchase)
         except Exception as ex:
