@@ -18,9 +18,9 @@ from scraperPurchase import *
 
 from WorkerThread import *
 import urllib
+from ScrapingTask import *
 
-
-class WorkerDataFacadePR(AbstractWorkerDataFacade):
+class WDFsbisOrganizations(AbstractWorkerDataFacade):
     def getScrapingEntitiesFromDBS(self, dbSaver):
         # raise Exception("method getScrapingEntitiesFromDBS must be implemented in a runner class")
         return dbSaver.getOrganizations(" (p_name IS NULL AND inn IS NOT NULL)")
@@ -34,14 +34,14 @@ class WorkerDataFacadePR(AbstractWorkerDataFacade):
         print "####### DONE FOR ", scrapingItem.partnerId, " by ", threading.current_thread()
 
     def getSIID(self, scrapingItem):
-        return str(scrapingItem.partnerId)
+        return "sbis" + str(scrapingItem.partnerId)
 
     def defaultHttpTimeout(self):
         return 60
 
 
-PurchasesPostETL(DBSaver().conn).runQueriesList0(PurchasesPostETL.sqls1)
+if __name__ == "__main__":
+    PurchasesPostETL(DBSaver().conn).runQueriesList0(PurchasesPostETL.sqls1)
 
-df = WorkerDataFacadePR()
-WorkerThread.startScrapingEngine(df, threadsCount=19)
-
+    df = WDFsbisOrganizations()
+    WorkerThread.startScrapingEngine(df, threadsCount=8)

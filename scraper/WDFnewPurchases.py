@@ -7,10 +7,11 @@
 
 
 from WorkerThread import *
+from ScrapingTask import *
 import urllib
 
 
-class WorkerDataFacadePR(AbstractWorkerDataFacade):
+class WDFnewPurchases(AbstractWorkerDataFacade):
     def getScrapingEntitiesFromDBS(self, dbSaver):
         # raise Exception("method getScrapingEntitiesFromDBS must be implemented in a runner class")
         return dbSaver.getQueryStrings()
@@ -27,14 +28,12 @@ class WorkerDataFacadePR(AbstractWorkerDataFacade):
         dbSaver.touchQuery(scrapingItem[0])
 
     def getSIID(self, scrapingItem):
-        return str(scrapingItem[0])
+        return "purch" + str(scrapingItem[0])
 
     def useProxy(self):
         return False
 
 
-
-df = WorkerDataFacadePR()
-WorkerThread.startScrapingEngine(df, threadsCount=10)
-
-
+if __name__ == "__main__":
+    df = WDFnewPurchases()
+    WorkerThread.startScrapingEngine(df, threadsCount=3)

@@ -345,10 +345,15 @@ FROM tPurchaseBid tpb join tPartner tp on tpb.partnerId=tp.partnerId
 
 select * from tPurchase where purchaseId=110
 select * from tPurchaseDetails where purchaseId=110
-select * from tPurchaseBid where purchaseId=110
-update tPurchase set lastUpdate=Null where purchaseId=110
+select * from tPurchaseBid order by bidId desc limit 1000 -- where purchaseId=110
+--update tPurchase set lastUpdate=Null where purchaseId not in (select purchaseId from tPurchaseBid )
 
 
 select * from tPurchase where lastUpdate is null
 
+
+
+
+select cast(_loadDate as date), count(1)  from tPurchase
+group by cast(_loadDate as date) order by 1 desc
 

@@ -18,9 +18,9 @@ from scraperPurchase import *
 
 from WorkerThread import *
 import urllib
+from ScrapingTask import *
 
-
-class WorkerDataFacadeBids(AbstractWorkerDataFacade):
+class WDFpurchaseBids(AbstractWorkerDataFacade):
     def getScrapingEntitiesFromDBS(self, dbSaver):
         return dbSaver.getPurchaseBids()
 
@@ -29,7 +29,7 @@ class WorkerDataFacadeBids(AbstractWorkerDataFacade):
         print "####### DONE FOR ", scrapingItem.bidId, " by ", threading.current_thread()
 
     def getSIID(self, scrapingItem):
-        return str(scrapingItem.bidId)
+        return "bid" + str(scrapingItem.bidId)
 
     # def defaultHttpTimeout(self):
     #     return 60
@@ -37,10 +37,7 @@ class WorkerDataFacadeBids(AbstractWorkerDataFacade):
         return True
 
 
-PurchasesPostETL(DBSaver().conn).runQueriesList0(PurchasesPostETL.sqls1)
-
-df = WorkerDataFacadeBids()
-WorkerThread.startScrapingEngine(df, threadsCount=12)
-
-
-
+if __name__ == "__main__":
+    PurchasesPostETL(DBSaver().conn).runQueriesList0(PurchasesPostETL.sqls1)
+    df = WDFpurchaseBids()
+    WorkerThread.startScrapingEngine(df, threadsCount=8)

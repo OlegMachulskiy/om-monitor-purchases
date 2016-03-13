@@ -5,6 +5,8 @@ from selenium.webdriver.support import expected_conditions as EC  # available si
 from selenium.webdriver.support.ui import WebDriverWait  # available since 2.4.0
 
 from Purchase import *
+from enum import Enum
+import re
 
 
 class PageParserPurchaseRequest:
@@ -60,15 +62,21 @@ class PageParserPurchaseRequest:
             print "PurchaseContract:", pcontr
             self.dbSaver.storePurchaseContract(pcontr)
 
-        vProtocolFound = False
         protocolLikeLinks = self.driver.find_elements_by_xpath('//table[@class="noticeCardTableInBlock"]/tbody/tr/td/a')
+
         for href in protocolLikeLinks:
-            if u"protocolId=" in href.get_attribute(
-                    "href"):  ### FOUND ON THIS SERVER. Other Servers will have different URLs
-                vProtocolFound = True
+            if u"protocolId=" in href.get_attribute("href"):
+                ### FOUND ON THIS SERVER. Other Servers will have different URLs
                 href.click()
+                self.parseBidList_ZakupkiGovRu(vPurchase)
+                break
+            elif u"etp-micex.ru/procedure/protocol" in href.get_attribute("href"):
+                self.driver.get(href.get_attribute("href"))
+                # href.click()
+                self.parseBidList_EtpMicex(vPurchase)
                 break
 
+    def parseBidList_ZakupkiGovRu(self, vPurchase):
         try:
             element = WebDriverWait(self.driver, 20).until(
                 EC.presence_of_element_located(
@@ -91,6 +99,29 @@ class PageParserPurchaseRequest:
             # filesList = self.readPurchaseFiles(vPurchase.purchaseId)
             # print "filesList:", filesList
             # self.dbSaver.storePurchaseFiles(vPurchase.purchaseId, filesList)
+
+    def parseBidList_EtpMicex(self, vPurchase):
+        try:
+            element = WebDriverWait(self.driver, 20).until(
+                EC.presence_of_element_located(
+                    (By.XPATH, '//table[@id="requests"]')))
+
+            TDs = self.driver.find_elements_by_xpath(
+                '//table[@id="requests"]/tbody/tr/td[@class="accreditationInfoFieldset"]')
+            for td in TDs:
+                orgText = td.text
+                match = re.search(ur'\(ИНН\s+(\d+)\)', orgText)
+                inn = match.group(0)[4:-1].strip()
+                hrefA = td.find_element_by_xpath(".//span/a")
+                bidUrl = hrefA.get_attribute("href")
+                self.dbSaver.storePurchaseBid(vPurchase.purchaseId, bidUrl)
+
+
+
+
+        except Exception as ex:
+            eMsg = """There's no table[@id="requests"] link here:"""
+            self.dbSaver.logErr(eMsg + self.driver.current_url, sys.exc_info())
 
     def scrapOrderContent(self, vPurchase):
         # do the following for purchases only once per several days

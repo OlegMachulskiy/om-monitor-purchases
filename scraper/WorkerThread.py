@@ -10,6 +10,7 @@ import traceback
 from dircache import reset
 
 from scraperPurchase import *
+from ScrapingTask import *
 import sys
 
 thread_lock = threading.Lock()
@@ -21,6 +22,10 @@ vgEntitiesInProgress = set()
 
 
 class WorkerThread(threading.Thread):
+    """
+    Run multithreaded scraping engine locally.
+    """
+
     def __init__(self, workerDataFacade):
         threading.Thread.__init__(self)
         self.workerDataFacade = workerDataFacade
@@ -98,8 +103,9 @@ class WorkerThread(threading.Thread):
         except Exception as ex:
             # traceback.print_exc()
             if self.workerDataFacade.collectProxyStats():
-                dbSaver.storeHTTPProxyResult(proxyAddr, int(round(time.time() * 1000)) - current_milli_time, str(ex)+":"+self.workerDataFacade.getSIID(scrapingItem))
-            dbSaver.logErr("Failure:"+self.workerDataFacade.getSIID(scrapingItem) , sys.exc_info())
+                dbSaver.storeHTTPProxyResult(proxyAddr, int(round(time.time() * 1000)) - current_milli_time,
+                                             str(ex) + ":" + self.workerDataFacade.getSIID(scrapingItem))
+            dbSaver.logErr("Failure:" + self.workerDataFacade.getSIID(scrapingItem), sys.exc_info())
             raise ex
         finally:
             if dbSaver != None:
@@ -135,29 +141,3 @@ class WorkerThread(threading.Thread):
             if t != threading.current_thread():
                 t.join()
 
-
-class AbstractWorkerDataFacade:
-    def getScrapingEntitiesFromDBS(self, dbSaver):
-        raise Exception(
-            "method getScrapingEntitiesFromDBS must be implemented in a runner class")
-        # for example return dbs.getPurchases(1)
-
-    def runScrapingForEntity(self, dbSaver, scraper, scrapingItem):
-        raise Exception(
-            "method runScrapingForEntity must be implemented in a runner class")
-        # for example:
-        # self.scraper.scrapOrderContent(self.dbSaver, scrapingItem)
-        # self.dbSaver.touchPurchase(scrapingItem.purchaseId)
-
-    def getSIID(self, scrapingItem):
-        raise Exception(
-            "method getSIID must be implemented in a runner class")
-
-    def collectProxyStats(self):
-        return False
-
-    def defaultHttpTimeout(self):
-        return 50
-
-    def useProxy(self):
-        return True

@@ -12,9 +12,9 @@ from scraperPurchase import *
 
 from WorkerThread import *
 import urllib
+from ScrapingTask import *
 
-
-class WorkerDataFacadePR(AbstractWorkerDataFacade):
+class WDFpurchaseContracts(AbstractWorkerDataFacade):
     def getScrapingEntitiesFromDBS(self, dbSaver):
         # raise Exception("method getScrapingEntitiesFromDBS must be implemented in a runner class")
         return dbSaver.getPurchaseContracts(1)
@@ -31,13 +31,14 @@ class WorkerDataFacadePR(AbstractWorkerDataFacade):
         print "####### DONE FOR ", scrapingItem, " by ", threading.current_thread()
 
     def getSIID(self, scrapingItem):
-        return str(scrapingItem.purchaseContractId)
+        return "pcontr" + str(scrapingItem.purchaseContractId)
 
     def collectProxyStats(self):
         return True
 
 
-PurchasesPostETL(DBSaver().conn).runQueriesList0(PurchasesPostETL.sqls1)
+if __name__ == "__main__":
+    PurchasesPostETL(DBSaver().conn).runQueriesList0(PurchasesPostETL.sqls1)
 
-df = WorkerDataFacadePR()
-WorkerThread.startScrapingEngine(df, threadsCount=15)
+    df = WDFpurchaseContracts()
+    WorkerThread.startScrapingEngine(df, threadsCount=8)

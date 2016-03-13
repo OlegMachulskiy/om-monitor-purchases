@@ -4,14 +4,15 @@
 ### TEST - technical test  NetworkX library
 ##############################################################################################################
 import math
-
-__author__ = 'omachulskiy'
+from unidecode import unidecode
 
 from scraperPurchase import *
 import networkx as nx
 
+__author__ = 'omachulskiy'
 
-class ZTest25:
+
+class CreateGraphML:
     def __init__(self):
         self.dbSaver = DBSaver()
         # self.dbSaver.postETL()
@@ -94,27 +95,27 @@ class ZTest25:
         finally:
             cur.close()
 
-    def appendGagarinskiyAndPurchasesToGraph(self, g):
+    def appendPurchasesByTagToGraph(self, g, tagName):
         cur = self.dbSaver.conn.cursor()
         try:
             cur.execute("""
 
-SELECT
-       ppd.customerName,
-       pp.purchaseId,
-       title,
-       winnerINN,
-       _url,
-       ppd.contractAmount,
-       tp.partnerId
-FROM tPurchase pp
-JOIN tPurchaseDetails ppd ON pp.purchaseId = ppd.purchaseId
-LEFT JOIN tPurchaseContracts pcc on  pp.purchaseId = pcc.purchaseId
-LEFT JOIN tPartner tp on tp.inn =  pcc.winnerInn
-WHERE ppd.title IS NOT NULL
-and ppd.purchaseId in (select purchaseId from tPurchaseTags WHERE tagLabel in ('Гагаринский'))
+                    SELECT
+                           ppd.customerName,
+                           pp.purchaseId,
+                           title,
+                           winnerINN,
+                           _url,
+                           ppd.contractAmount,
+                           tp.partnerId
+                    FROM tPurchase pp
+                    JOIN tPurchaseDetails ppd ON pp.purchaseId = ppd.purchaseId
+                    LEFT JOIN tPurchaseContracts pcc on  pp.purchaseId = pcc.purchaseId
+                    LEFT JOIN tPartner tp on tp.inn =  pcc.winnerInn
+                    WHERE ppd.title IS NOT NULL
+                    and ppd.purchaseId in (select purchaseId from tPurchaseTags WHERE tagLabel in (%s))
 
-            """)
+            """, [tagName])
             rows = cur.fetchall()
             cnt = 0
             for row in rows:
@@ -241,20 +242,26 @@ and ppd.purchaseId in (select purchaseId from tPurchaseTags WHERE tagLabel in ('
         g = nx.Graph()
 
         self.loadWholePartnersNetworkToGraph(g)
-        self.appendGagarinskiyAndPurchasesToGraph(g)
+        # self.appendGagarinskiyAndPurchasesToGraph(g)
 
         nx.write_graphml(g, "partners.graphml", encoding="utf-8")
 
-    def testNetworkxOnlyLocal(self):
+    def testNetworkxOnlyLocal(self, vTagName, vFileName=None):
+        if vFileName is None:
+            vFileName = "graph_" + unidecode(vTagName) + ".graphml"
+
         g = nx.Graph()
 
-        self.appendGagarinskiyAndPurchasesToGraph(g)
+        self.appendPurchasesByTagToGraph(g, vTagName)
         self.extendGraphWithBidsAndWinners(g)
         self.extendGraphWithLinkedPersons(g)
         self.updateParametersForAllPartners(g)
 
-        nx.write_graphml(g, "gagarinskiy.graphml", encoding="utf-8")
+        nx.write_graphml(g, vFileName, encoding="utf-8")
+        print "Written graph ", vTagName, " to ", vFileName
 
 
-ZTest25().testNetworkxFullGraph()
-ZTest25().testNetworkxOnlyLocal()
+CreateGraphML().testNetworkxFullGraph()
+for tg in [u'Гагаринский', u'ВоробьевыГоры', u'Раменки', u'Университетский', u'Вернадского', u'Ленинский',
+           u'Академический', u'ПрефектураЮЗАО', u'Благоустройство']:
+    CreateGraphML().testNetworkxOnlyLocal(tg)
