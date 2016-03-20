@@ -1,4 +1,5 @@
-"""scraperPurchase Module
+"""
+scraperPurchase Module
 """
 from DBSaver import *
 from Purchase import *

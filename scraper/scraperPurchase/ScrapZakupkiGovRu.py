@@ -9,6 +9,7 @@ from PageParserContract import *
 from OrganizationFinder import *
 from ProxyFactory import *
 from PageParserPurchaseBid import *
+import platform
 
 
 class ScrapZakupkiGovRu:
@@ -26,12 +27,20 @@ class ScrapZakupkiGovRu:
                     prxAddr = ProxyFactory().getRandomProxy()
                     proxyParams = ["--proxy=" + prxAddr]
 
-                self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe",
-                                                  service_args=proxyParams)
+                # self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe",
+                #                                   service_args=proxyParams)
+
+                if platform.system() == 'Windows':
+                    self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe",
+                                                      service_args=proxyParams)
+                else:
+                    self.driver = webdriver.PhantomJS("/opt/phantomjs-2.1.1-linux-i686/bin/phantomjs",
+                                                      service_args=proxyParams)
+
                 self.driver.implicitly_wait(defaultHttpTimeout)
                 self.driver.set_page_load_timeout(defaultHttpTimeout)
 
-            # open("file00.html", "w").write(unicode(self.driver.page_source).encode('utf-8'))
+                # open("file00.html", "w").write(unicode(self.driver.page_source).encode('utf-8'))
         except HTTPError as e:
             traceback.print_last()
             # print(e)

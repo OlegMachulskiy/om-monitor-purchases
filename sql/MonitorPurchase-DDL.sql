@@ -99,6 +99,8 @@ CREATE TABLE  tPurchaseRawData (
 	PRIMARY KEY (purchaseId, keyName),
 	FOREIGN KEY (purchaseId) REFERENCES tPurchase ON DELETE CASCADE
 );
+create index on tPurchaseRawData (keyName);
+
 
 CREATE TABLE  tPurchaseFiles (
 	purchaseFileId numeric(36) NOT NULL, 
@@ -137,7 +139,7 @@ CREATE TABLE  tContractRawData (
 	PRIMARY KEY (purchaseContractId, keyName),
 	FOREIGN KEY (purchaseContractId) REFERENCES tPurchaseContracts ON DELETE CASCADE
 );
-
+create index on tContractRawData (keyName);
 
 CREATE TABLE  tPartner (
 	partnerId 	numeric(36) NOT NULL, 
@@ -203,6 +205,8 @@ create table tMapping (
 	tag	VARCHAR(512) NOT NULL, 
 	primary key (title,tag)
 	);
+create index on tMapping (tag);
+create index on tMapping (title);
 
 create table tPurchaseTags (
 	purchaseId numeric(36) NOT NULL, 
