@@ -8,26 +8,33 @@ from WDFpurchaseDetails import *
 from WDFsbisOrganizations import *
 from WDFpurchaseContracts import *
 
+# class Singleton(object):
+#     _instance = None
+#
+#     def __new__(class_, *args, **kwargs):
+#         if not isinstance(class_._instance, class_):
+#             class_._instance = object.__new__(class_, *args, **kwargs)
+#         return class_._instance
+vgScrapingQueueInstance = None
 
-class Singleton(object):
-    _instance = None
 
-    def __new__(class_, *args, **kwargs):
-        if not isinstance(class_._instance, class_):
-            class_._instance = object.__new__(class_, *args, **kwargs)
-        return class_._instance
-
-
-class ScrapingQueue(Singleton):
-    tasks = {}  # printable task Id -> ScrapingTask() instance
-    inProgress = {}  # printable task Id -> ScrapingTask() instance
-    thrLock = threading.Lock()
-    dataFacades = [WDFnewPurchases(), WDFpurchaseBids(), WDFpurchaseDetails(), WDFsbisOrganizations(),
-                   WDFpurchaseContracts()]
-    callCounter = 0
-
+class ScrapingQueue:
     def __init__(self):
-        Singleton.__init__(self)
+        print """!!!!! ScrapingQueue constuctor !!!!!!  Should be present only once!!!"""
+        # Singleton.__init__(self)
+        self.tasks = {}  # printable task Id -> ScrapingTask() instance
+        self.inProgress = {}  # printable task Id -> ScrapingTask() instance
+        self.thrLock = threading.Lock()
+        self.dataFacades = [WDFnewPurchases(), WDFpurchaseBids(), WDFpurchaseDetails(), WDFsbisOrganizations(),
+                            WDFpurchaseContracts()]
+        self.callCounter = 0
+
+    @staticmethod
+    def instance():
+        global vgScrapingQueueInstance
+        if not isinstance(vgScrapingQueueInstance, ScrapingQueue):
+            vgScrapingQueueInstance = ScrapingQueue()
+        return vgScrapingQueueInstance
 
     def refreshQueue(self):
         print "refreshQueue"
@@ -69,7 +76,7 @@ class ScrapingQueue(Singleton):
                         self.tasks.pop(ssid)
                         theObj = value
                         break
-            print "Returning:", theObj, "progress=", self.inProgress.keys()
+            print "getNextTask returning:", theObj, "progress=", self.inProgress.keys()
             return theObj
 
     def markTaskCompleted(self, ssid):
@@ -84,4 +91,4 @@ class ScrapingQueue(Singleton):
             return len(self.tasks)
 
     def getProgress(self):
-        return self.inProgress
+        return self.inProgress.keys()
