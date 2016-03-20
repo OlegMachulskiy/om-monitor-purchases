@@ -31,6 +31,7 @@ class ScrapingQueue(Singleton):
 
     def refreshQueue(self):
         print "refreshQueue"
+        PurchasesPostETL(DBSaver().conn).runQueriesList0(PurchasesPostETL.sqls1)
         dbs = DBSaver()
         try:
             self.tasks = {}
@@ -52,7 +53,9 @@ class ScrapingQueue(Singleton):
             self.callCounter += 1
 
             theObj = None
-            if len(self.tasks) < 10 or self.callCounter % 100 == 0:
+            if len(self.tasks) < 10 \
+                    or (len(self.tasks) < 100 and self.callCounter % 10 == 0) \
+                    or self.callCounter % 100 == 0:
                 self.refreshQueue()
 
             if len(self.tasks) > 0:
@@ -79,3 +82,6 @@ class ScrapingQueue(Singleton):
             return 0
         else:
             return len(self.tasks)
+
+    def getProgress(self):
+        return self.inProgress

@@ -79,7 +79,8 @@ def startScrapingNode(threadCount=7):
         time.sleep(3)
         print "Active threads:", threading.active_count(), \
             "qLength:", ScrapingQueue().getLength(), \
-            "currentThread:", threading.current_thread
+            "currentThread:", threading.current_thread, \
+            "running:", ScrapingQueue().getProgress()
 
         # for th in threading.enumerate():
         #     print(th)
