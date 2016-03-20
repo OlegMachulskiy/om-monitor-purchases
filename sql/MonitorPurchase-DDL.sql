@@ -226,6 +226,8 @@ create table tHTTPProxyResult (
 	result VARCHAR(128) , 
 	_loadDate  timestamp default now()
 );
+create index on tHTTPProxyResult (proxy);
+create index on tHTTPProxyResult (result);
 
 delete from tMapping;
 insert into tMapping (title, tag) values ('Наименование закупки','purchase_title');

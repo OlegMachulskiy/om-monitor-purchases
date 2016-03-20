@@ -21,7 +21,7 @@ class WDFpurchaseDetails(AbstractWorkerDataFacade):
         # for example:
         scraper.scrapOrderContent(dbSaver, scrapingItem)
         dbSaver.touchPurchase(scrapingItem.purchaseId)
-        print "####### DONE FOR ", scrapingItem, " by ", threading.current_thread()
+        print "####### DONE FOR P_Details ", scrapingItem, " by ", threading.current_thread()
 
     def getSIID(self, scrapingItem):
         return "pdet"+str(scrapingItem.purchaseId)

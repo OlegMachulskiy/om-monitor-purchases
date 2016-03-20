@@ -31,7 +31,7 @@ class WDFsbisOrganizations(AbstractWorkerDataFacade):
         # scraper.scrapOrderContent(dbSaver, scrapingItem)
         # dbSaver.touchPurchase(scrapingItem.purchaseId)
         scraper.lookupOrganizationInfo(dbSaver, scrapingItem)
-        print "####### DONE FOR ", scrapingItem.partnerId, " by ", threading.current_thread()
+        print "####### DONE FOR ORG ", scrapingItem.partnerId, " by ", threading.current_thread()
 
     def getSIID(self, scrapingItem):
         return "sbis" + str(scrapingItem.partnerId)

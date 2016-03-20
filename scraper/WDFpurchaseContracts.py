@@ -28,7 +28,7 @@ class WDFpurchaseContracts(AbstractWorkerDataFacade):
         # dbSaver.touchPurchase(scrapingItem.purchaseId)
         scraper.scrapPurchaseContract(dbSaver, scrapingItem)
         dbSaver.touchPurchaseContract(scrapingItem.purchaseContractId)
-        print "####### DONE FOR ", scrapingItem, " by ", threading.current_thread()
+        print "####### DONE FOR PCONTR ", scrapingItem, " by ", threading.current_thread()
 
     def getSIID(self, scrapingItem):
         return "pcontr" + str(scrapingItem.purchaseContractId)
