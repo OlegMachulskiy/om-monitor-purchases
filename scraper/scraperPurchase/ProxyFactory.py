@@ -215,6 +215,10 @@ order by  weight1 desc
             for prx in proxies:
                 cur.execute("INSERT INTO tHTTPProxies (proxy) VALUES (%s);", [prx]);
             dbs.conn.commit()
+
+            cur.execute("""             delete from tHttpProxyResult p1 where not exists (
+            	select 1 from tHttpProxyResult p2 where p1.proxy = p2.proxy and result='Success') """);
+            dbs.conn.commit()
         finally:
             cur.close()
 

@@ -17,7 +17,10 @@ from ScrapingTask import *
 class WDFpurchaseContracts(AbstractWorkerDataFacade):
     def getScrapingEntitiesFromDBS(self, dbSaver):
         # raise Exception("method getScrapingEntitiesFromDBS must be implemented in a runner class")
-        return dbSaver.getPurchaseContracts(1)
+        rv = dbSaver.getPurchaseContracts(0)
+        if rv is None or len(rv)==0:
+            rv = dbSaver.getPurchaseContracts(1)
+        return rv
 
     #
 
