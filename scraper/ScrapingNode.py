@@ -11,7 +11,7 @@ import threading
 class ScrapingNode(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-        self.q = ScrapingQueue.instance()
+        self.q = ScrapingQueue()
         self.dbSaver = DBSaver()
 
     def __del__(self):
@@ -78,8 +78,8 @@ def startScrapingNode(threadCount=7):
     while True:
         time.sleep(3)
         print "Active threads:", threading.active_count(), \
-            "qLength:", ScrapingQueue.instance().getLength(), \
-            "pregress=", ScrapingQueue.instance().getProgress(), \
+            "qLength:", ScrapingQueue().getLength(), \
+            "pregress=", ScrapingQueue().getProgress(), \
             "currentThread=", threading.current_thread, \
             ""
         # for th in threading.enumerate():

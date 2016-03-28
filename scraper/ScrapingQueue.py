@@ -8,17 +8,19 @@ from WDFpurchaseDetails import *
 from WDFsbisOrganizations import *
 from WDFpurchaseContracts import *
 
-# class Singleton(object):
-#     _instance = None
-#
-#     def __new__(class_, *args, **kwargs):
-#         if not isinstance(class_._instance, class_):
-#             class_._instance = object.__new__(class_, *args, **kwargs)
-#         return class_._instance
-vgScrapingQueueInstance = None
+
+class Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
 
 
 class ScrapingQueue:
+    __metaclass__ = Singleton
+
     def __init__(self):
         print """!!!!! ScrapingQueue constuctor !!!!!!  Should be present only once!!!"""
         # Singleton.__init__(self)
@@ -28,13 +30,6 @@ class ScrapingQueue:
         self.dataFacades = [WDFnewPurchases(), WDFpurchaseBids(), WDFpurchaseDetails(), WDFsbisOrganizations(),
                             WDFpurchaseContracts()]
         self.callCounter = 0
-
-    @staticmethod
-    def instance():
-        global vgScrapingQueueInstance
-        if not isinstance(vgScrapingQueueInstance, ScrapingQueue):
-            vgScrapingQueueInstance = ScrapingQueue()
-        return vgScrapingQueueInstance
 
     def refreshQueue(self):
         print "refreshQueue"
