@@ -114,6 +114,7 @@ class PurchaseBid:
         self.purchaseId = None
         self.partnerId = None
         self.url = None
+        self.participantName = None
 
     def __repr__(self):
         rv = "<PurchaseBid:"

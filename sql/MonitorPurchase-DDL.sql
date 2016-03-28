@@ -177,12 +177,15 @@ CREATE TABLE tPurchaseBid (
 	bidId	numeric(36) NOT NULL, 
 	purchaseId numeric(36) NOT NULL, 
 	url	VARCHAR(512) NOT NULL, 
+	participantName	VARCHAR(512) , 
 	_loadDate  timestamp default now(),
 	partnerId	numeric(36),
 	PRIMARY KEY(bidId),
 	FOREIGN KEY (purchaseId) REFERENCES tPurchase ON DELETE CASCADE,
 	FOREIGN KEY (partnerId) REFERENCES tPartner ON DELETE RESTRICT
 );
+
+#alter table tPurchaseBid add participantName	VARCHAR(512) 
 
 --DROP TABLE tPurchaseBidRawData;
 CREATE TABLE tPurchaseBidRawData (

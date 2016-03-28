@@ -216,19 +216,25 @@ class DBSaver:
         finally:
             cur.close()
 
-    def getPurchases(self, depth=0):
+    def getPurchases(self, depth=0, purchaseId=None):
         """
+        :param purchaseId - id of object to parse
         :param depth: =0 - only new purchase requests
                     =1 - both new and older than 5 days
         :return:
         """
         cur = self.conn.cursor()
         try:
-            sql = """ SELECT purchaseId, orderId, _url, _loadDate FROM tPurchase WHERE lastUpdate is null """
+            sql = """ SELECT purchaseId, orderId, _url, _loadDate FROM tPurchase WHERE  """
             prms = []
-            if depth >= 1:
-                sql += """ or lastUpdate<=%s """
-                prms.append(datetime.datetime.today() - timedelta(days=5))
+            if purchaseId is not None:
+                sql = sql + " purchaseId=%s "
+                prms.append(purchaseId)
+            else:
+                sql = sql + " lastUpdate is null "
+                if depth >= 1:
+                    sql += """ or lastUpdate<=%s """
+                    prms.append(datetime.datetime.today() - timedelta(days=5))
             cur.execute(sql, prms)
 
             rv = []
@@ -434,7 +440,7 @@ class DBSaver:
     #     finally:
     #         cur.close()
 
-    def storePurchaseBid(self, purchaseId, bidUrl):
+    def storePurchaseBid(self, purchaseId, bidUrl, participantName=None):
         cur = self.conn.cursor()
         try:
             cur.execute("SELECT bidId FROM tPurchaseBid WHERE purchaseId=%s AND url=%s", [purchaseId, bidUrl])
@@ -444,21 +450,29 @@ class DBSaver:
             else:
                 cur.execute("""select nextval('idGen')""")
                 bidId = cur.fetchone()[0]
-                cur.execute("INSERT INTO tPurchaseBid (bidId, purchaseId, url) VALUES (%s, %s, %s)",
-                            [bidId, purchaseId, bidUrl])
+                cur.execute("INSERT INTO tPurchaseBid (bidId, purchaseId, url, participantName) VALUES (%s, %s, %s, %s)",
+                            [bidId, purchaseId, bidUrl, participantName])
                 self.conn.commit()
                 return bidId
         finally:
             cur.close()
 
-    def getPurchaseBids(self):
+    def getPurchaseBids(self, bidId=None):
         cur = self.conn.cursor()
         try:
-            cur.execute(
-                """ SELECT bidId, purchaseId, url, partnerId FROM tPurchaseBid
+            sql = """ SELECT bidId, purchaseId, url, partnerId, participantName
+                FROM tPurchaseBid
+                 """
+            params = []
+            if bidId is None:
+                sql = sql + """
                 WHERE partnerId IS NULL
-                    OR bidId NOT IN (SELECT DISTINCT bidId FROM tPurchaseBidRawData)""",
-                [datetime.datetime.today() - timedelta(days=5)])
+                    OR bidId NOT IN (SELECT DISTINCT bidId FROM tPurchaseBidRawData)"""
+            else:
+                sql = sql + """ WHERE bidId=%s"""
+                params.append(bidId)
+
+            cur.execute(sql, params)  ##datetime.datetime.today() - timedelta(days=5)
             rows = cur.fetchall()
             rv = []
             for row in rows:
@@ -467,6 +481,7 @@ class DBSaver:
                 bid.purchaseId = row[1]
                 bid.url = row[2]
                 bid.partnerId = row[3]
+                bid.participantName = row[4]
                 rv.append(bid)
             return rv
         finally:
@@ -512,7 +527,6 @@ class DBSaver:
             self.conn.commit()
         finally:
             cur.close()
-
 
     def storeHTTPProxyResult(self, proxy, timeout, result):
         cur = self.conn.cursor()

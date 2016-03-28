@@ -7,6 +7,8 @@ from selenium.webdriver.support.ui import WebDriverWait  # available since 2.4.0
 from Purchase import *
 from enum import Enum
 import re
+from DBSaver import DBSaver
+from WebDrvManager import WebDrvManager
 
 
 class PageParserPurchaseRequest:
@@ -89,10 +91,21 @@ class PageParserPurchaseRequest:
                     (By.XPATH,
                      '//table[@id="protocolBid"]/tbody/tr/td[@class="firstTd" or @class="center descriptTenderTd"]//a')))
 
-            bids = self.driver.find_elements_by_xpath('//table[@id="protocolBid"]/tbody/tr/td[@class="firstTd"]//a')
-            for bidA in bids:
-                bidUrl = bidA.get_attribute("href")
-                self.dbSaver.storePurchaseBid(vPurchase.purchaseId, bidUrl)
+            bids = self.driver.find_elements_by_xpath('//table[@id="protocolBid"]/tbody/tr')
+            for bidRow in bids:
+                bidAs = bidRow.find_elements_by_xpath('td[@class="firstTd"]//a')
+                if len(bidAs) > 0:
+                    bidUrl = bidAs[0].get_attribute("href")
+                    self.dbSaver.storePurchaseBid(vPurchase.purchaseId, bidUrl)
+                else:  ## new design
+                    orgName = bidRow.find_elements_by_xpath("td[3]")[0].text
+                    noticeSign = bidRow.find_elements_by_xpath('td//span[@class="noticeSign"]')[0]
+                    noticeSign.click()
+                    noticeSignAs = noticeSign.find_elements_by_xpath('.//a')
+                    bidHref = noticeSignAs[0].get_attribute("href")
+                    self.dbSaver.storePurchaseBid(purchaseId=vPurchase.purchaseId, bidUrl=bidHref, participantName=orgName)
+
+
         except Exception as ex:
             eMsg = "There's no PROTOCOL_BID_LIST link here:"
             self.dbSaver.logErr(eMsg + self.driver.current_url, sys.exc_info())
@@ -171,3 +184,15 @@ class PageParserPurchaseRequest:
             # else:
             #     print "Object refreshed less than 1 day ago:", vPurchase
             #     print datetime.datetime.now(), vPurchase._loadDate, (datetime.datetime.now() - vPurchase._loadDate)
+
+
+if __name__ == '__main__':
+    # scraper = ScrapZakupkiGovRu()
+    # scraper
+    dbSaver = DBSaver()
+    wdm = WebDrvManager()
+    wdm.initializeWebdriver(useFirefoxDriver=True)
+
+    ppr = PageParserPurchaseRequest(dbSaver, wdm.driver)
+    prcs = dbSaver.getPurchases(purchaseId=1049)
+    ppr.scrapOrderContent(prcs[0])
