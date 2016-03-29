@@ -185,7 +185,7 @@ CREATE TABLE tPurchaseBid (
 	FOREIGN KEY (partnerId) REFERENCES tPartner ON DELETE RESTRICT
 );
 
-#alter table tPurchaseBid add participantName	VARCHAR(512) 
+-- alter table tPurchaseBid add participantName	VARCHAR(512) 
 
 --DROP TABLE tPurchaseBidRawData;
 CREATE TABLE tPurchaseBidRawData (
@@ -283,6 +283,7 @@ INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Моск
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Москва храм');
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'УПРАВА АКАДЕМИЧЕСКОГО РАЙОНА');
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Префектура Юго-Западного административного округа города Москвы');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'САМАРАВОДОКАНАЛ');
  
 
 
