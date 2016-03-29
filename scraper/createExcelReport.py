@@ -21,7 +21,7 @@ class CreateExcelReport:
         print "writeMainSheet: DONE", rc
 
         for tag in [u'Гагаринский', u'ВоробьевыГоры', u'Университетский', u'Вернадского', u'Ленинский',
-                    u'Академический', u'ПрефектураЮЗАО', u'Благоустройство', u'Самара']:
+                    u'Академический', u'ПрефектураЮЗАО', u'Благоустройство', u'Вавилова', u'Самара']:
             rc = self.writeTagWinnersSheet(cur, wb, tag)
             print "writeTagWinnersSheet(", tag.encode("utf-8"), ") : DONE", rc
 

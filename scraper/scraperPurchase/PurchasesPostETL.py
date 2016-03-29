@@ -151,6 +151,14 @@ class PurchasesPostETL:
         ,
         """
         insert into tPurchaseTags (purchaseId, tagLabel)
+        select purchaseId, 'Вавилова' from tPurchaseDetails pd
+        where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
+        (lower(title) like '%вавилов%' OR lower(customername) like '%вавилов%')
+        and not exists (select 1 from tPurchaseTags ptg where pd.purchaseId=ptg.purchaseId and ptg.tagLabel='Вавилова');
+        """
+        ,
+        """
+        insert into tPurchaseTags (purchaseId, tagLabel)
         select purchaseId, 'Ленинский' from tPurchaseDetails pd
         where (lower(title) like '%москв%' OR lower(customername) like '%москв%') AND
         (lower(title) like '%ленинск%' OR lower(customername) like '%ленинск%') AND
