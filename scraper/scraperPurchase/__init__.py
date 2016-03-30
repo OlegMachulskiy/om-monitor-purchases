@@ -4,6 +4,7 @@ scraperPurchase Module
 from DBSaver import *
 from Purchase import *
 from ScrapZakupkiGovRu import *
+from Singleton import *
 
 __revision__ = "$Id$"
 __all__ = ["DBSaver",
@@ -11,5 +12,6 @@ __all__ = ["DBSaver",
            "PurchaseFile",
            "ScrapZakupkiGovRu",
            "PurchaseContract",
-           "PurchasesPostETL"
+           "PurchasesPostETL",
+           "Singleton"
            ]
