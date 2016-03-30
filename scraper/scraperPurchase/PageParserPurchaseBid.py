@@ -5,6 +5,10 @@ from selenium.webdriver.support import expected_conditions as EC  # available si
 from selenium.webdriver.support.ui import WebDriverWait  # available since 2.4.0
 
 from Purchase import *
+from DBSaver import DBSaver
+from WebDrvManager import WebDrvManager
+
+import re
 
 
 class PageParserPurchaseBid:
@@ -43,8 +47,38 @@ class PageParserPurchaseBid:
         return d
 
     def scrapPurchaseBid(self, vBid):
-        self.driver.get(vBid.url)
-        bidRawData = self.readTabBidData()
-        self.dbSaver.storePurchaseBidRawData(vBid.bidId, bidRawData)
-        self.dbSaver.updatePurchaseBidData(vBid.bidId)
+        if vBid.participantName is None:
+            self.driver.get(vBid.url)
+            bidRawData = self.readTabBidData()
+            self.dbSaver.storePurchaseBidRawData(vBid.bidId, bidRawData)
+            self.dbSaver.updatePurchaseBidData(vBid.bidId)
+        else:  ## name is present!!!! lookup INN!
+            self.driver.get('http://www.list-org.com/?search=name')
+            searchFld = self.driver.find_elements_by_xpath('//input[@name="val"]')[0]
+            pName = vBid.participantName.decode('utf-8')
+            searchFld.send_keys(pName)
+            searchFld.find_element_by_xpath('../button').click()
+            vPs = self.driver.find_elements_by_xpath('//div[@class="content"]/p/a')
+            vPs[0].click()
+            vPs = self.driver.find_elements_by_xpath('//div[@class="content"]/p/i[text()="ИНН:"]/..')
+            tINN = vPs[0].text
+            inn_ = tINN[5:]
+            dbSaver.storePurchaseBidRawData(vBid.bidId, {u'ИНН' : inn_})
+            self.dbSaver.updatePurchaseBidData(vBid.bidId)
+
+        pass
+
+
+if __name__ == '__main__':
+    # scraper = ScrapZakupkiGovRu()
+    # scraper
+    try:
+        dbSaver = DBSaver()
+        wdm = WebDrvManager()
+        wdm.initializeWebdriver(useFirefoxDriver=True)
+
+        ppr = PageParserPurchaseBid(dbSaver, wdm.driver)
+        prcs = dbSaver.getPurchaseBids(bidId=186890)
+        ppr.scrapPurchaseBid(prcs[0])
+    except Exception as ex:
         pass

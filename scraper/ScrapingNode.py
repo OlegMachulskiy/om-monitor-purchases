@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os.path
 
 from ScrapingQueue import *
 # from ScrapingGrid import *
@@ -11,7 +12,7 @@ import threading
 class ScrapingNode(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-        self.q = ScrapingQueue.instance()
+        self.q = ScrapingQueue()
         self.dbSaver = DBSaver()
 
     def __del__(self):
@@ -28,6 +29,9 @@ class ScrapingNode(threading.Thread):
             doRun = True
 
             while doRun:
+                if os.path.isfile("STOP"):
+                    print "STOP file found. Quitting..."
+                    break
                 scrapingTask = self.q.getNextTask()
                 print "Got scraping task:", scrapingTask
                 scrapingTaskKey = scrapingTask.wdf.getSIID(scrapingTask.taskObject)
@@ -76,10 +80,13 @@ def startScrapingNode(threadCount=7):
     sNode.start()
 
     while True:
+        if os.path.isfile("STOP"):
+            print "STOP file found. Quitting..."
+            break
         time.sleep(3)
         print "Active threads:", threading.active_count(), \
-            "qLength:", ScrapingQueue.instance().getLength(), \
-            "pregress=", ScrapingQueue.instance().getProgress(), \
+            "qLength:", ScrapingQueue().getLength(), \
+            "pregress=", ScrapingQueue().getProgress(), \
             "currentThread=", threading.current_thread, \
             ""
         # for th in threading.enumerate():

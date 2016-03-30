@@ -177,12 +177,15 @@ CREATE TABLE tPurchaseBid (
 	bidId	numeric(36) NOT NULL, 
 	purchaseId numeric(36) NOT NULL, 
 	url	VARCHAR(512) NOT NULL, 
+	participantName	VARCHAR(512) , 
 	_loadDate  timestamp default now(),
 	partnerId	numeric(36),
 	PRIMARY KEY(bidId),
 	FOREIGN KEY (purchaseId) REFERENCES tPurchase ON DELETE CASCADE,
 	FOREIGN KEY (partnerId) REFERENCES tPartner ON DELETE RESTRICT
 );
+
+-- alter table tPurchaseBid add participantName	VARCHAR(512) 
 
 --DROP TABLE tPurchaseBidRawData;
 CREATE TABLE tPurchaseBidRawData (
@@ -280,6 +283,7 @@ INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Моск
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Москва храм');
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'УПРАВА АКАДЕМИЧЕСКОГО РАЙОНА');
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Префектура Юго-Западного административного округа города Москвы');
+INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'САМАРАВОДОКАНАЛ');
  
 
 
