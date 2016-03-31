@@ -107,7 +107,6 @@ class Person(Partner):
     def __init__(self):
         Partner.__init__(self)
 
-
 class Organization(Partner):
     def __init__(self):
         Partner.__init__(self)
