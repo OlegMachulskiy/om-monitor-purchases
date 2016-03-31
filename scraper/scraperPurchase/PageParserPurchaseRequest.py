@@ -59,10 +59,9 @@ class PageParserPurchaseRequest:
             winnerName = cttds[2].text
             priceT = cttds[3].text
             pushishDateT = cttds[4].text
-            pcontr = PurchaseContract(purchaseId, url, contractNo, customerName, winnerName, priceT,
-                                      pushishDateT)
-            print "PurchaseContract:", pcontr
-            self.dbSaver.storePurchaseContract(pcontr)
+            vPurchase.purchaseContract = PurchaseContract(purchaseId, url, contractNo, customerName, winnerName, priceT, pushishDateT)
+            #print "PurchaseContract:", pcontr
+            self.dbSaver.storePurchaseContract(vPurchase.purchaseContract)
 
         protocolLikeLinks = self.driver.find_elements_by_xpath('//table[@class="noticeCardTableInBlock"]/tbody/tr/td/a')
 

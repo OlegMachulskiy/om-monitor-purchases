@@ -1,9 +1,14 @@
-class Purchase:
+import simplejson
+
+class Purchase():
     def __init__(self):
         self._url = None
         self._loadDate = None
         self.purchaseId = None
         self.orderId = None
+        self.bids = [] # PurchaseBid
+        self.purchaseContract = None
+
         # self.orderDate = None
         # self.purchaseType = None
         # self.customer_orgId = None
@@ -109,15 +114,23 @@ class Organization(Partner):
         self.url_sbis = None
 
 class PurchaseBid:
-    def __init__(self):
-        self.bidId = None
-        self.purchaseId = None
-        self.partnerId = None
-        self.url = None
-        self.participantName = None
+    def __init__(self, bidId=None, purchaseId=None, partnerId=None, url=None, participantName=None):
+        self.bidId = bidId
+        self.purchaseId = purchaseId
+        self.partnerId = partnerId
+        self.url = url
+        self.participantName = participantName
 
     def __repr__(self):
         rv = "<PurchaseBid:"
         rv += str(self.bidId) + ', '
         rv += str(self.url) + '>'
         return rv.encode('utf-8')
+
+class MyEncoder(simplejson.JSONEncoder):
+    def default(self, o):
+        return o.__dict__
+
+if __name__=='__main__':
+    pb = PurchaseBid()
+    print simplejson.dumps(pb, cls=MyEncoder)

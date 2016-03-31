@@ -284,6 +284,7 @@ INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Моск
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'УПРАВА АКАДЕМИЧЕСКОГО РАЙОНА');
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'Префектура Юго-Западного административного округа города Москвы');
 INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'САМАРАВОДОКАНАЛ');
+
  
 
 
@@ -294,4 +295,5 @@ INSERT INTO tSourceQueries (queryId , qText) VALUES (nextval('idGen'), 'САМА
 --    select * from tPurchaseFiles
 -- select keyName, count(*) from tPurchaseData group by keyName
 -- select * from tErrorLog
+-- select * from tPurchaseBid where participantName is not null 
 
