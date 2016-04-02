@@ -17,7 +17,7 @@ class ScrapZakupkiGovRu(WebDrvManager):
         pass
 
     def __del__(self):
-        self.WebDrvManager.__del__()
+        WebDrvManager.__del__(self)
 
     def truncOrderId(self, orderId):
         m = re.search("\d", orderId)

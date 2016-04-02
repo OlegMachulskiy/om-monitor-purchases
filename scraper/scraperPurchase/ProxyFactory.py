@@ -82,7 +82,7 @@ with stats as (
 	union all
 	select proxy, 0 as avg_ok, 0 as count_ok, avg(timeout)  as avg_err, count(timeout) as  count_err from tHTTPProxyResult where result is NULL OR result <>'Success' and _loadDate > now()-interval '3 days'  group by proxy
 	union all
-	select proxy, 10000 as avg_ok, 1 as count_ok, 10000 as avg_err, 1 as count_err from tHTTPProxies where proxy not in (select distinct proxy from tHTTPProxyResult WHERE _loadDate > now()-interval '3 days')
+	select proxy, 10000 as avg_ok, 1 as count_ok, 10000 as avg_err, 1 as count_err from tHTTPProxies where proxy not in (select distinct proxy from tHTTPProxyResult )
 ), stats1 as (
 	select proxy, sum(avg_ok) as avg_ok, sum(count_ok) as count_ok, sum(avg_err) as avg_err, sum(count_err) as count_err from stats group by proxy
 ), weighted as

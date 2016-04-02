@@ -6,6 +6,7 @@ import pickle
 from ScrapingQueue import ScrapingQueue
 from rpyc.utils.server import ThreadedServer
 import rpyc
+from DBSaver import DBSaver
 
 
 class ScrapingHub(rpyc.Service):
@@ -37,6 +38,11 @@ class ScrapingHub(rpyc.Service):
     def exposed_markTaskCompleted(self, ssid):  # this is an exposed method
         print "method enter: exposed_markTaskCompleted", ssid
         ScrapingQueue().markTaskCompleted(ssid)
+
+    def exposed_connection(self):  # this is an exposed method
+        print "method enter: exposed_connection"
+        dbSaver = DBSaver()
+        return str(dbSaver.conn)
 
 
 if __name__ == "__main__":
