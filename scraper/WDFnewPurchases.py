@@ -26,7 +26,7 @@ class WDFnewPurchases(AbstractWorkerDataFacade):
         scr += '&searchString=' + urllib.quote(scrapingItem[1])
         scraper.scrapHeaders(dbSaver, scrapingItem[0], scr)
         dbSaver.touchQuery(scrapingItem[0])
-        print "####### DONE FOR Search ", urllib.quote(scrapingItem[0]), " by ", threading.current_thread()
+        print "####### DONE FOR Search ", urllib.quote(scrapingItem[0]), " by ", threading.current_thread(), time.time()
 
     def getSIID(self, scrapingItem):
         return "purch" + str(scrapingItem[0])

@@ -26,7 +26,7 @@ class WDFpurchaseBids(AbstractWorkerDataFacade):
 
     def runScrapingForEntity(self, dbSaver, scraper, scrapingItem):
         scraper.scrapPurchaseBid(dbSaver, scrapingItem)
-        print "####### DONE FOR BID ", scrapingItem.bidId, " by ", threading.current_thread()
+        print "####### DONE FOR BID ", scrapingItem.bidId, " by ", threading.current_thread(), time.time()
 
     def getSIID(self, scrapingItem):
         return "bid" + str(scrapingItem.bidId)

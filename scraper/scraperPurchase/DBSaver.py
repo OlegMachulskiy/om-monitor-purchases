@@ -11,7 +11,7 @@ from PurchasesPostETL import *
 class DBSaver:
     def __init__(self, connection="dbname='MonitorPurchase' user='postgres' host='localhost' password='q1w2e3r4'"):
         self.connString = connection
-        self.conn = psycopg2.connect()
+        self.conn = psycopg2.connect(self.connString)
 
     def testDbConnecivity(self):
         cur = self.conn.cursor()
