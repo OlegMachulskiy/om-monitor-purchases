@@ -60,7 +60,7 @@ class PageParserPurchaseRequest:
             priceT = cttds[3].text
             pushishDateT = cttds[4].text
             vPurchase.purchaseContract = PurchaseContract(purchaseId, url, contractNo, customerName, winnerName, priceT, pushishDateT)
-            #print "PurchaseContract:", pcontr
+            # print "PurchaseContract:", pcontr
             self.dbSaver.storePurchaseContract(vPurchase.purchaseContract)
 
         protocolLikeLinks = self.driver.find_elements_by_xpath('//table[@class="noticeCardTableInBlock"]/tbody/tr/td/a')
@@ -189,8 +189,7 @@ if __name__ == '__main__':
     # scraper = ScrapZakupkiGovRu()
     # scraper
     dbSaver = DBSaver()
-    wdm = WebDrvManager()
-    wdm.initializeWebdriver(useFirefoxDriver=True)
+    wdm = WebDrvManager(useFirefoxDriver=True)
 
     ppr = PageParserPurchaseRequest(dbSaver, wdm.driver)
     prcs = dbSaver.getPurchases(purchaseId=1049)

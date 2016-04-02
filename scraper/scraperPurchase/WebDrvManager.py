@@ -5,15 +5,15 @@ from selenium import webdriver
 from urllib2 import HTTPError
 
 class WebDrvManager:
-    def initializeWebdriver(self, useProxy=True, defaultHttpTimeout=30, useFirefoxDriver=False):
-        prxAddr = "No_Proxy"
+    def __init__(self, useProxy=True, defaultHttpTimeout=30, useFirefoxDriver=False):
+        self.proxyxAddr = "No_Proxy"
         try:
             proxyParams = []
             if useFirefoxDriver:
                 self.driver = webdriver.Firefox()
             else:
                 if useProxy:
-                    prxAddr = ProxyFactory().getRandomProxy()
+                    self.proxyxAddr = ProxyFactory().getRandomProxy()
                     proxyParams = ["--proxy=" + prxAddr]
 
                 # self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe",
@@ -36,7 +36,7 @@ class WebDrvManager:
             raise (e)
         else:
             print "Created webDriver:", self.driver, proxyParams
-        return prxAddr
+        # return prxAddr
 
     def __del__(self):
         if self.driver != None:

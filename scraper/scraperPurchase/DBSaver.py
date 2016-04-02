@@ -9,7 +9,7 @@ from PurchasesPostETL import *
 
 
 class DBSaver:
-    def __init__(self, connection="dbname='MonitorPurchase' user='postgres' host='localhost' password='q1w2e3r4'"):
+    def __init__(self, connection="dbname='MonitorPurchase' user='postgres' host='192.168.1.24' password='q1w2e3r4'"):
         self.connString = connection
         self.conn = psycopg2.connect(self.connString)
 

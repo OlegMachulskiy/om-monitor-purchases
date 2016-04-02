@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
-from scraper.scraperPurchase import DBSaver, ScrapZakupkiGovRu
+from scraperPurchase import DBSaver, WebDrvManager
 
 #########################################################################################################################################################################################################
 ## "Manually" scrap purchase with specified ID
 #########################################################################################################################################################################################################
 
-import re
+
 
 dbSaver = DBSaver()
-scraper = ScrapZakupkiGovRu()
-scraper.initializeWebdriver(useProxy=False, useFirefoxDriver=True)
+scraper = WebDrvManager(useProxy=False, useFirefoxDriver=True)
+
 
 for i in [38840]:
     scrapingItem = dbSaver.getPurchase(i)
-    scraper.scrapOrderContent(dbSaver, scrapingItem)
+    # scraper.scrapOrderContent(dbSaver, scrapingItem)
 
 
 # orgText = u'Общество с ограниченной ответственностью "МинералОпт" (ИНН 5905291122)'

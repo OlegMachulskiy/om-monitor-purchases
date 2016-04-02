@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from scraperPurchase import *
-from ScrapingTask import *
+
 from WDFnewPurchases import *
 from WDFpurchaseBids import *
 from WDFpurchaseDetails import *
 from WDFsbisOrganizations import *
 from WDFpurchaseContracts import *
-from scraperPurchase import Singleton
-
+from Singleton import *
+from ScrapingTask import *
 
 
 class ScrapingQueue:

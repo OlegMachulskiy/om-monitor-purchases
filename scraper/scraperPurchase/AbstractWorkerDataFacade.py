@@ -1,27 +1,12 @@
 # -*- coding: utf-8 -*-
 
-class ScrapingTask:
-    def __init__(self, taskObject, wdf):
-        self.taskObject = taskObject
-        self.wdf = wdf
-
-    # def exposed_wdf(self):
-    #     return self.wdf
-    #
-    # def exposed_taskObject(self):
-    #     return self.taskObject
-
-    def __repr__(self):
-        return "<ScrapingTask" + str(self.wdf) + ", " + str(self.taskObject) + ">"
-
-
 class AbstractWorkerDataFacade:
     def getScrapingEntitiesFromDBS(self, dbSaver):
         raise Exception(
             "method getScrapingEntitiesFromDBS must be implemented in a runner class")
         # for example return dbs.getPurchases(1)
 
-    def runScrapingForEntity(self, dbSaver, scraper, scrapingItem):
+    def runScrapingForEntity(self, dbSaver, webDriverM, scrapingItem):
         raise Exception(
             "method runScrapingForEntity must be implemented in a runner class")
         # for example:

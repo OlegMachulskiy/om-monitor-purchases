@@ -74,8 +74,8 @@ if __name__ == '__main__':
     # scraper
     try:
         dbSaver = DBSaver()
-        wdm = WebDrvManager()
-        wdm.initializeWebdriver(useFirefoxDriver=True)
+        wdm = WebDrvManager(useFirefoxDriver=True)
+
 
         ppr = PageParserPurchaseBid(dbSaver, wdm.driver)
         prcs = dbSaver.getPurchaseBids(bidId=186890)

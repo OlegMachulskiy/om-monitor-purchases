@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import json
 import pickle
 
-from ScrapingQueue import ScrapingQueue
-from rpyc.utils.server import ThreadedServer
 import rpyc
 from DBSaver import DBSaver
+from rpyc.utils.server import ThreadedServer
+
+from scraperPurchase import *
 
 
 class ScrapingHub(rpyc.Service):

@@ -4,28 +4,22 @@
 ### read details for PurchaseBids  from zakupki.gov.ru
 ##############################################################################################################
 
-import random
+
 import threading
-import time
 
-from scraperPurchase import *
+from DBSaver import *
+from PageParserPurchaseBid import *
+from scraper.scraperPurchase import *
+from scraper.scraperPurchase.AbstractWorkerDataFacade import *
 
-import random
-import threading
-import time
-
-from scraperPurchase import *
-
-from WorkerThread import *
-import urllib
-from ScrapingTask import *
 
 class WDFpurchaseBids(AbstractWorkerDataFacade):
     def getScrapingEntitiesFromDBS(self, dbSaver):
         return dbSaver.getPurchaseBids()
 
-    def runScrapingForEntity(self, dbSaver, scraper, scrapingItem):
-        scraper.scrapPurchaseBid(dbSaver, scrapingItem)
+    def runScrapingForEntity(self, dbSaver, webDriverM, scrapingItem):
+        ppb = PageParserPurchaseBid(dbSaver, webDriverM.driver)
+        ppb.scrapPurchaseBid(scrapingItem)
         print "####### DONE FOR BID ", scrapingItem.bidId, " by ", threading.current_thread(), time.time()
 
     def getSIID(self, scrapingItem):
@@ -38,6 +32,9 @@ class WDFpurchaseBids(AbstractWorkerDataFacade):
 
 
 if __name__ == "__main__":
-    PurchasesPostETL(DBSaver().conn).runQueriesList0(PurchasesPostETL.sqls1)
-    df = WDFpurchaseBids()
-    WorkerThread.startScrapingEngine(df, threadsCount=8)
+    df = WDFpurchaseContracts()
+    dbSaver = DBSaver()
+    wdm = WDFpurchaseBids(useFirefoxDriver=True)
+    queue = df.getScrapingEntitiesFromDBS(dbSaver)
+    for item in queue:
+        df.runScrapingForEntity(dbSaver, wdm, item)

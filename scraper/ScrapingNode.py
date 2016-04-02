@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os.path
 
-from ScrapingQueue import *
+from scraper.scraperPurchase.ScrapingQueue import *
 # from ScrapingGrid import *
 import time
 import sys
@@ -44,9 +44,9 @@ class ScrapingNode(threading.Thread):
 
                 scraper = None
                 try:
-                    scraper = ScrapZakupkiGovRu()
-                    proxyAddr = scraper.initializeWebdriver(useProxy=scrapingTask.wdf.useProxy(),
+                    scraper = WebDrvManager(useProxy=scrapingTask.wdf.useProxy(),
                                                             defaultHttpTimeout=scrapingTask.wdf.defaultHttpTimeout())
+                    proxyAddr = scraper.proxyxAddr
 
                     scrapingTask.wdf.runScrapingForEntity(self.dbSaver, scraper,
                                                           scrapingTask.taskObject)

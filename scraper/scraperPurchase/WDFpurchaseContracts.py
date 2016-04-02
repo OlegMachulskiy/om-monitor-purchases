@@ -4,32 +4,27 @@
 ### update contracts details
 ##############################################################################################################
 
-import random
 import threading
-import time
 
-from scraperPurchase import *
+from PageParserContract import *
+from WebDrvManager import *
+from scraper.scraperPurchase.AbstractWorkerDataFacade import *
 
-from WorkerThread import *
-import urllib
-from ScrapingTask import *
 
 class WDFpurchaseContracts(AbstractWorkerDataFacade):
     def getScrapingEntitiesFromDBS(self, dbSaver):
         # raise Exception("method getScrapingEntitiesFromDBS must be implemented in a runner class")
         rv = dbSaver.getPurchaseContracts(0)
-        if rv is None or len(rv)==0:
+        if rv is None or len(rv) == 0:
             rv = dbSaver.getPurchaseContracts(1)
         return rv
 
     #
 
-    def runScrapingForEntity(self, dbSaver, scraper, scrapingItem):
-        # raise Exception("method runScrapingForEntity must be implemented in a runner class")
-        # for example:
-        # scraper.scrapOrderContent(dbSaver, scrapingItem)
-        # dbSaver.touchPurchase(scrapingItem.purchaseId)
-        scraper.scrapPurchaseContract(dbSaver, scrapingItem)
+    def runScrapingForEntity(self, dbSaver, webDriverM, scrapingItem):
+
+        ppr = PageParserContract(dbSaver, webDriverM.driver)
+        ppr.scrapContract(scrapingItem)
         dbSaver.touchPurchaseContract(scrapingItem.purchaseContractId)
         print "####### DONE FOR PCONTR ", scrapingItem, " by ", threading.current_thread(), time.time()
 
@@ -41,7 +36,9 @@ class WDFpurchaseContracts(AbstractWorkerDataFacade):
 
 
 if __name__ == "__main__":
-    PurchasesPostETL(DBSaver().conn).runQueriesList0(PurchasesPostETL.sqls1)
-
     df = WDFpurchaseContracts()
-    WorkerThread.startScrapingEngine(df, threadsCount=8)
+    dbSaver = DBSaver()
+    wdm = WebDrvManager(useFirefoxDriver=True)
+    queue = df.getScrapingEntitiesFromDBS(dbSaver)
+    for item in queue:
+        df.runScrapingForEntity(dbSaver, wdm, item)
