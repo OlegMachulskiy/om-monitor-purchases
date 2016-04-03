@@ -22,7 +22,7 @@ class PageParserContract:
         dataTRs = self.driver.find_elements_by_xpath(
             '//div[@class="noticeTabBoxWrapper"]/table/tbody/tr')
         if len(dataTRs) < 1:
-            raise Exception("Page returned by proxy has no data:", self.driver.current_url)
+            raise Exception("Page returned has no data:", self.driver.current_url)
 
         for dtr in dataTRs:
             tds = dtr.find_elements_by_xpath("td")

@@ -8,7 +8,7 @@ import threading
 
 from PageParserContract import *
 from WebDrvManager import *
-from scraper.scraperPurchase.AbstractWorkerDataFacade import *
+from AbstractWorkerDataFacade import *
 
 
 class WDFpurchaseContracts(AbstractWorkerDataFacade):
@@ -26,7 +26,7 @@ class WDFpurchaseContracts(AbstractWorkerDataFacade):
         ppr = PageParserContract(dbSaver, webDriverM.driver)
         ppr.scrapContract(scrapingItem)
         dbSaver.touchPurchaseContract(scrapingItem.purchaseContractId)
-        print "####### DONE FOR PCONTR ", scrapingItem, " by ", threading.current_thread(), time.time()
+        print "####### DONE FOR PCONTR ", scrapingItem, " by ", threading.current_thread(), ' at ', datetime.datetime.now()
 
     def getSIID(self, scrapingItem):
         return "pcontr" + str(scrapingItem.purchaseContractId)
@@ -38,7 +38,8 @@ class WDFpurchaseContracts(AbstractWorkerDataFacade):
 if __name__ == "__main__":
     df = WDFpurchaseContracts()
     dbSaver = DBSaver()
-    wdm = WebDrvManager(useFirefoxDriver=True)
     queue = df.getScrapingEntitiesFromDBS(dbSaver)
     for item in queue:
+        wdm = WebDrvManager(useFirefoxDriver=True)
         df.runScrapingForEntity(dbSaver, wdm, item)
+        del wdm

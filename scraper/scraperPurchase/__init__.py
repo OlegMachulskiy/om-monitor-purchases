@@ -3,7 +3,6 @@ scraperPurchase Module
 """
 from DBSaver import *
 from Purchase import *
-from ScrapZakupkiGovRu import *
 from Singleton import *
 from WDFnewPurchases import *
 from WDFpurchaseBids import *

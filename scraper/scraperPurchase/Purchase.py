@@ -1,12 +1,13 @@
 import simplejson
 
+
 class Purchase():
     def __init__(self):
         self._url = None
         self._loadDate = None
         self.purchaseId = None
         self.orderId = None
-        self.bids = [] # PurchaseBid
+        self.bids = []  # PurchaseBid
         self.purchaseContract = None
 
         # self.orderDate = None
@@ -60,10 +61,10 @@ class PurchaseFile:
 
 
 class PurchaseContract:
-    def __init__(self, purchaseId, url, contractNo, customerName, winnerName, priceT, pushishDateT):
+    def __init__(self, purchaseId, url, purchaseContractId = None, contractNo = None, customerName = None, priceT = None, winnerName = None, pushishDateT = None):
         self.purchaseId = purchaseId
-        self.purchaseContractId = None
         self.url = url
+        self.purchaseContractId = purchaseContractId
         self.contractNo = contractNo
         self.customerName = customerName
         self.priceT = priceT
@@ -107,10 +108,12 @@ class Person(Partner):
     def __init__(self):
         Partner.__init__(self)
 
+
 class Organization(Partner):
     def __init__(self):
         Partner.__init__(self)
         self.url_sbis = None
+
 
 class PurchaseBid:
     def __init__(self, bidId=None, purchaseId=None, partnerId=None, url=None, participantName=None):
@@ -126,10 +129,19 @@ class PurchaseBid:
         rv += str(self.url) + '>'
         return rv.encode('utf-8')
 
+
+class PurchaseProtocol:
+    def __init__(self, purchaseId, protocol_url, purchaseProtocolId=None):
+        self.purchaseId = purchaseId
+        self.protocol_url = protocol_url
+        self.purchaseProtocolId = purchaseProtocolId
+
+
 class MyEncoder(simplejson.JSONEncoder):
     def default(self, o):
         return o.__dict__
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     pb = PurchaseBid()
     print simplejson.dumps(pb, cls=MyEncoder)

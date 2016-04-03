@@ -144,20 +144,16 @@ class DBSaver:
 
             cur.execute(
                 """ SELECT purchaseContractId, purchaseId, url, customerName, _loadDate
-                FROM tPurchaseContracts WHERE purchaseId=%s and url=%s and customerName=%s """,
-                [contract.purchaseId, contract.url.encode('utf-8'), contract.customerName.encode('utf-8')])
+                FROM tPurchaseContracts WHERE purchaseId=%s and url=%s """,
+                [contract.purchaseId, contract.url.encode('utf-8')])
             res = cur.fetchall()
             if len(res) < 1:
                 cur.execute("""select nextval('idGen')""")
                 purchaseContractId = cur.fetchone()[0]
                 cur.execute(
-                    """ INSERT INTO tPurchaseContracts
-                    (purchaseContractId, purchaseId, contractNo, url, customerName, winnerName, priceT, pushishDateT)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s) """,
-                    [purchaseContractId, contract.purchaseId, contract.contractNo.encode('utf-8'),
-                     contract.url.encode('utf-8'), contract.customerName.encode('utf-8'),
-                     contract.winnerName.encode('utf-8'), contract.priceT.encode('utf-8'),
-                     contract.pushishDateT.encode('utf-8')])
+                    """ INSERT INTO tPurchaseContracts (purchaseContractId, purchaseId, url)
+                    VALUES (%s, %s, %s) """,
+                    [purchaseContractId, contract.purchaseId, contract.url.encode('utf-8')])
             self.conn.commit()
         # except Exception as ex:
         #     traceback.print_tb(sys.exc_traceback)
@@ -278,14 +274,16 @@ class DBSaver:
         cur = self.conn.cursor()
         try:
             if purchaseContractId == None:
-                sql = """ SELECT purchaseContractId, purchaseId, url, contractNo, customerName, winnerName, priceT, pushishDateT, _loadDate FROM tPurchaseContracts WHERE lastUpdate is null """
+                sql = """ SELECT purchaseContractId, purchaseId, url, contractNo, customerName, winnerName, priceT, pushishDateT, _loadDate
+                FROM tPurchaseContracts WHERE lastUpdate is null """
                 prms = []
                 if depth >= 1:
                     sql += """ or lastUpdate<=%s """
                     prms.append(datetime.datetime.today() - timedelta(days=5))
                 cur.execute(sql, prms)
             else:
-                sql = """ SELECT purchaseContractId, purchaseId, url, contractNo, customerName, winnerName, priceT, pushishDateT, _loadDate FROM tPurchaseContracts WHERE purchaseContractId=%s """
+                sql = """ SELECT purchaseContractId, purchaseId, url, contractNo, customerName, winnerName, priceT, pushishDateT, _loadDate
+                FROM tPurchaseContracts WHERE purchaseContractId=%s """
                 cur.execute(sql, [purchaseContractId])
 
             rv = []
@@ -298,7 +296,8 @@ class DBSaver:
                 winnerName = row[5]
                 priceT = row[6]
                 pushishDateT = row[7]
-                vPurC = PurchaseContract(purchaseId, url, contractNo, customerName, winnerName, priceT, pushishDateT)
+                vPurC = PurchaseContract(purchaseId, url, contractNo=contractNo, customerName=customerName,
+                                         winnerName=winnerName, priceT=priceT, pushishDateT=pushishDateT)
                 vPurC.purchaseContractId = row[0]
                 rv.append(vPurC)
 
@@ -397,6 +396,30 @@ class DBSaver:
 
             self.conn.commit()
             return vPerson
+        finally:
+            cur.close()
+
+    def storePurchaseProtocol(self, purchaseProtocol):
+        cur = self.conn.cursor()
+        try:
+            if purchaseProtocol.purchaseProtocolId == None:
+                cur.execute("SELECT purchaseProtocolId FROM tPurchaseProtocol WHERE protocol_url=%s AND purchaseId=%s",
+                            [purchaseProtocol.protocol_url, purchaseProtocol.purchaseId])
+                rows = cur.fetchall()
+                if len(rows) < 1:
+                    cur.execute("""select nextval('idGen')""")
+                    purchaseProtocol.purchaseProtocolId = cur.fetchone()[0]
+                    cur.execute("INSERT INTO tPurchaseProtocol (purchaseId, protocol_url, purchaseProtocolId) "
+                                " VALUES (%s, %s, %s)",
+                                [purchaseProtocol.purchaseId, purchaseProtocol.protocol_url, purchaseProtocol.purchaseProtocolId])
+                else:
+                    purchaseProtocol.purchaseProtocolId = rows[0][0]
+
+            # cur.execute("UPDATE tPartner SET inn=%s, p_name=%s, category='P' WHERE partnerId=%s",
+            #             [vPerson.inn, vPerson.p_name, vPerson.partnerId])
+
+            self.conn.commit()
+            return purchaseProtocol
         finally:
             cur.close()
 

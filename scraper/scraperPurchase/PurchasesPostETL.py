@@ -5,22 +5,15 @@ import traceback
 
 
 class PurchasesPostETL:
-    sqls0 = [
-        """
-        insert into tPurchaseDetails (purchaseId) 	(select purchaseId from  tPurchase tp	where not exists (select * from tPurchaseDetails  tpd1 where tpd1.purchaseId = tp.purchaseId))
-        """
-        ,
-        """
+    sql_PD_1 = """
         update tPurchaseDetails p
         set title = (
             select textValue512
-            from tPurchaseRawData pd join tMapping mp
-            on pd.keyName in ('Наименование закупки', 'Наименование объекта закупки')
-            where pd.purchaseId=p.purchaseId
+            from tPurchaseRawData pd WHERE pd.keyName in ('Наименование закупки', 'Наименование объекта закупки')
+            AND pd.purchaseId=p.purchaseId
             limit 1)
 		"""
-        ,
-        """
+    sql_PD_2 = """
         update tPurchaseDetails p
         SET responsible = (
             select textValue512
@@ -29,8 +22,7 @@ class PurchasesPostETL:
             where pd.purchaseId=p.purchaseId
             limit 1)
 		"""
-        ,
-        """
+    sql_PD_3 = """
         update tPurchaseDetails p
         SET contractAmountT = (
             select textValue512
@@ -39,8 +31,7 @@ class PurchasesPostETL:
             where pd.purchaseId=p.purchaseId
             limit 1)
 		"""
-        ,
-        """
+    sql_PD_4 = """
         update tPurchaseDetails p
         SET customerName = (
             select textValue512
@@ -49,8 +40,7 @@ class PurchasesPostETL:
             where pd.purchaseId=p.purchaseId
             limit 1)
 		"""
-        ,
-        """
+    sql_PD_5 = """
         update tPurchaseDetails p
         SET stage = (
             select textValue512
@@ -59,8 +49,7 @@ class PurchasesPostETL:
             where pd.purchaseId=p.purchaseId
             limit 1)
 		"""
-        ,
-        """
+    sql_PD_6 = """
         update tPurchaseDetails p
         SET purchaseType = (
             select textValue512
@@ -69,8 +58,7 @@ class PurchasesPostETL:
             where pd.purchaseId=p.purchaseId
             limit 1)
         """
-        ,
-        """
+    sql_PD_7 = """
         update tPurchaseDetails p  set
         submitStartT = (
             select textValue512
@@ -79,8 +67,7 @@ class PurchasesPostETL:
             where pd.purchaseId=p.purchaseId
             limit 1)
         """
-        ,
-        """
+    sql_PD_8 = """
         update tPurchaseDetails p  set
         submitFinishT = (
             select textValue512
@@ -89,8 +76,7 @@ class PurchasesPostETL:
             where pd.purchaseId=p.purchaseId
             limit 1)
         """
-        ,
-        """
+    sql_PD_9 = """
         update tPurchaseDetails p  set
         requestPublishedT = (
             select textValue512
@@ -99,7 +85,12 @@ class PurchasesPostETL:
             where pd.purchaseId=p.purchaseId
             limit 1)
         """
+    sqls0 = [
+        """
+        insert into tPurchaseDetails (purchaseId) 	(select purchaseId from  tPurchase tp	where not exists (select * from tPurchaseDetails  tpd1 where tpd1.purchaseId = tp.purchaseId))
+        """
         ,
+        sql_PD_1, sql_PD_2, sql_PD_3, sql_PD_4, sql_PD_5, sql_PD_6, sql_PD_7, sql_PD_8, sql_PD_9,
         """
         insert into tPurchaseTags (purchaseId, tagLabel)
         select purchaseId, 'Гагаринский' from tPurchaseDetails pd
@@ -248,6 +239,22 @@ class PurchasesPostETL:
     def __init__(self, conn):
         self.conn = conn
 
+    def runPostETL_for_Purchase(self, purchase):
+        cur = self.conn.cursor()
+        try:
+            cur.execute("INSERT INTO tPurchaseDetails (purchaseId) 	"
+                        " (SELECT purchaseId from  tPurchase tp	"
+                        " WHERE not exists (select * from tPurchaseDetails  tpd1 WHERE tpd1.purchaseId = tp.purchaseId)"
+                        " AND tp.purchaseId=%s)", [purchase.purchaseId])
+            for qq in [self.sql_PD_1, self.sql_PD_2, self.sql_PD_3, self.sql_PD_4, self.sql_PD_5, self.sql_PD_6]:
+                sql = qq + " WHERE purchaseId=%s"
+                cur.execute(sql, [purchase.purchaseId])
+                print "DONE: ", self.normalizeSpaces(sql), [purchase.purchaseId]
+
+            self.conn.commit()
+        finally:
+            cur.close()
+
     def runPostETL(self):
         self.runQueriesList0(self.sqls0)
         self.runQueriesList0(self.sqls1)
@@ -260,8 +267,7 @@ class PurchasesPostETL:
         try:
             for sql in sqls:
                 cur.execute(sql)
-                print "DONE: " + sql.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ') \
-                    .replace('     ', ' ').replace('    ', ' ').replace('   ', ' ').replace('  ', ' ')
+                print "DONE: " + self.normalizeSpaces(sql)
             self.conn.commit()
         finally:
             cur.close()
@@ -345,3 +351,7 @@ class PurchasesPostETL:
         finally:
             cur.close()
             print "DONE:parsePurchaseContractsNumbers"
+
+    def normalizeSpaces(self, sql):
+        return sql.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ') \
+                    .replace('     ', ' ').replace('    ', ' ').replace('   ', ' ').replace('  ', ' ')

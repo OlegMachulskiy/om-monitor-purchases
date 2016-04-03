@@ -10,8 +10,8 @@ from selenium.webdriver.support.ui import WebDriverWait  # available since 2.4.0
 from selenium.webdriver.support import expected_conditions as EC  # available since 2.26.0
 from selenium.webdriver.common.by import By
 
-from scraperPurchase import Person
 
+from Purchase import Person
 
 class OrganizationFinder:
     def __init__(self, dbSaver, driver):
@@ -28,7 +28,7 @@ class OrganizationFinder:
         # self.driver.get(vPurchContract.url)
         # contractDataMap = self.readTabPurchaseContractData()
         # self.dbSaver.storePurchaseContractData(vPurchContract.purchaseContractId, contractDataMap)
-        vOrg.url_sbis = "https://sbis.ru/contragents/" + vOrg.inn
+        vOrg.url_sbis = "https://sbis.ru/" + vOrg.inn
 
         self.driver.get(vOrg.url_sbis)
         element = WebDriverWait(self.driver, 30).until(

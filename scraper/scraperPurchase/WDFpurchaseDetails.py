@@ -28,7 +28,7 @@ class WDFpurchaseDetails(AbstractWorkerDataFacade):
         ppr.scrapOrderContent(scrapingItem)
 
         dbSaver.touchPurchase(scrapingItem.purchaseId)
-        print "####### DONE FOR P_Details ", scrapingItem, " by ", threading.current_thread(), time.time()
+        print "####### DONE FOR P_Details ", scrapingItem, " by ", threading.current_thread(), ' at ', datetime.datetime.now()
 
     def getSIID(self, scrapingItem):
         return "pdet" + str(scrapingItem.purchaseId)
@@ -40,7 +40,8 @@ class WDFpurchaseDetails(AbstractWorkerDataFacade):
 if __name__ == "__main__":
     df = WDFpurchaseDetails()
     dbSaver = DBSaver()
-    wdm = WebDrvManager(useFirefoxDriver=True)
     queue = df.getScrapingEntitiesFromDBS(dbSaver)
     for item in queue:
+        wdm = WebDrvManager(useFirefoxDriver=True)
         df.runScrapingForEntity(dbSaver, wdm, item)
+        del wdm

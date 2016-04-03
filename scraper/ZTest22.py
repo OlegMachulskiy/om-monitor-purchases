@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from scraper.scraperPurchase import DBSaver, ScrapZakupkiGovRu
+from scraperPurchase import DBSaver
 import json
 
 #########################################################################################################################################################################################################

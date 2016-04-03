@@ -20,7 +20,7 @@ class WDFpurchaseBids(AbstractWorkerDataFacade):
     def runScrapingForEntity(self, dbSaver, webDriverM, scrapingItem):
         ppb = PageParserPurchaseBid(dbSaver, webDriverM.driver)
         ppb.scrapPurchaseBid(scrapingItem)
-        print "####### DONE FOR BID ", scrapingItem.bidId, " by ", threading.current_thread(), time.time()
+        print "####### DONE FOR BID ", scrapingItem.bidId, " by ", threading.current_thread(), ' at ', datetime.datetime.now()
 
     def getSIID(self, scrapingItem):
         return "bid" + str(scrapingItem.bidId)

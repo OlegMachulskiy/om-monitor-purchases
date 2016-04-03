@@ -4,6 +4,12 @@
 ### read organizations details from SBIS website
 ##############################################################################################################
 
+import threading
+
+from PageParserContract import *
+from WebDrvManager import *
+from scraper.scraperPurchase.AbstractWorkerDataFacade import *
+
 from DBSaver import *
 from OrganizationFinder import *
 from AbstractWorkerDataFacade import *
@@ -22,7 +28,7 @@ class WDFsbisOrganizations(AbstractWorkerDataFacade):
         orgf = OrganizationFinder(dbSaver, webDriverM.driver)
         orgf.lookupOrganizationInfo(scrapingItem)
 
-        print "####### DONE FOR ORG ", scrapingItem.partnerId, " by ", threading.current_thread(), time.time()
+        print "####### DONE FOR ORG ", scrapingItem.partnerId, " by ", threading.current_thread(), ' at ', datetime.datetime.now()
 
     def getSIID(self, scrapingItem):
         return "sbis" + str(scrapingItem.partnerId)
@@ -34,7 +40,9 @@ class WDFsbisOrganizations(AbstractWorkerDataFacade):
 if __name__ == "__main__":
     df = WDFsbisOrganizations()
     dbSaver = DBSaver()
-    wdm = WDFsbisOrganizations(useFirefoxDriver=True)
+
     queue = df.getScrapingEntitiesFromDBS(dbSaver)
     for item in queue:
+        wdm = WebDrvManager(useFirefoxDriver=True)
         df.runScrapingForEntity(dbSaver, wdm, item)
+        del wdm

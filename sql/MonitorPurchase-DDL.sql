@@ -4,6 +4,7 @@ CREATE SEQUENCE idGen START 100 ;
 
 --DROP VIEW vPurchases;
 
+DROP TABLE tPurchaseProtocol; 
 DROP TABLE tPurchaseBidRawData;
 DROP TABLE tPurchaseBid;
 DROP TABLE tPartnerURLQueue;
@@ -48,6 +49,16 @@ CREATE TABLE  tPurchase (
 	_url	varchar(512),
 	_loadDate  timestamp default now(),
 	PRIMARY KEY (purchaseId)
+);
+
+CREATE TABLE tPurchaseProtocol (
+	purchaseProtocolId numeric(36) NOT NULL, 
+	purchaseId numeric(36) NOT NULL, 
+	protocol_url varchar(512),
+	_loadDate  timestamp default now(),
+	primary key (purchaseProtocolId), 
+	FOREIGN KEY (purchaseId) REFERENCES tPurchase ON DELETE CASCADE,
+	unique  (purchaseId , protocol_url)
 );
 
 
