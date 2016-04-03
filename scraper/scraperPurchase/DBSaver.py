@@ -113,30 +113,30 @@ class DBSaver:
         finally:
             cur.close()
 
-    def storePurchaseFiles(self, purchaseId, purchases):
-        cur = self.conn.cursor()
-        try:
-            for prcf in purchases:
-                cur.execute(
-                    """ SELECT purchaseFileId, purchaseId, url, title, filename, _loadDate  FROM tPurchaseFiles WHERE purchaseId=%s and url=%s and title=%s """,
-                    [prcf.purchaseId, prcf.url.encode('utf-8'), prcf.title.encode('utf-8')])
-                res = cur.fetchall()
-                if len(res) < 1:
-                    cur.execute("""select nextval('idGen')""")
-                    purchaseFileId = cur.fetchone()[0]
-                    cur.execute(
-                        """ INSERT INTO tPurchaseFiles (purchaseFileId, purchaseId, url, title, filename) VALUES (%s, %s, %s, %s, %s) """,
-                        [purchaseFileId, purchaseId, prcf.url.encode('utf-8'), prcf.title.encode('utf-8'),
-                         prcf.filename.encode('utf-8')])
-            self.conn.commit()
-        # except Exception as ex:
-        #     traceback.print_tb(sys.exc_traceback)
-        #     traceback.print_last()
-        #     self.logErr("Exception for purchaseId:" + str(purchaseId), sys.exc_info())
-        #     self.conn.rollback()
-        #     raise NameError("Exception for purchaseId:" + str(purchaseId))
-        finally:
-            cur.close()
+    # def storePurchaseFiles(self, purchaseId, purchases):
+    #     cur = self.conn.cursor()
+    #     try:
+    #         for prcf in purchases:
+    #             cur.execute(
+    #                 """ SELECT purchaseFileId, purchaseId, url, title, filename, _loadDate  FROM tPurchaseFiles WHERE purchaseId=%s and url=%s and title=%s """,
+    #                 [prcf.purchaseId, prcf.url.encode('utf-8'), prcf.title.encode('utf-8')])
+    #             res = cur.fetchall()
+    #             if len(res) < 1:
+    #                 cur.execute("""select nextval('idGen')""")
+    #                 purchaseFileId = cur.fetchone()[0]
+    #                 cur.execute(
+    #                     """ INSERT INTO tPurchaseFiles (purchaseFileId, purchaseId, url, title, filename) VALUES (%s, %s, %s, %s, %s) """,
+    #                     [purchaseFileId, purchaseId, prcf.url.encode('utf-8'), prcf.title.encode('utf-8'),
+    #                      prcf.filename.encode('utf-8')])
+    #         self.conn.commit()
+    #     # except Exception as ex:
+    #     #     traceback.print_tb(sys.exc_traceback)
+    #     #     traceback.print_last()
+    #     #     self.logErr("Exception for purchaseId:" + str(purchaseId), sys.exc_info())
+    #     #     self.conn.rollback()
+    #     #     raise NameError("Exception for purchaseId:" + str(purchaseId))
+    #     finally:
+    #         cur.close()
 
     def storePurchaseContract(self, contract):
         cur = self.conn.cursor()
@@ -163,6 +163,31 @@ class DBSaver:
         #     raise NameError("Exception for purchaseId:" + str(purchaseId))
         finally:
             cur.close()
+
+    def storeContractSupplier(self, contractSupplier):
+        cur = self.conn.cursor()
+        try:
+            if contractSupplier.contractSupplierId is None:
+                cur.execute("SELECT contractSupplierId FROM tContractSuppliers  WHERE purchaseContractId=%s AND inn=%s",
+                            [contractSupplier.purchaseContractId, contractSupplier.inn])
+                rows = cur.fetchall()
+                if len(rows) < 1:
+                    cur.execute("""select nextval('idGen')""")
+                    contractSupplier.contractSupplierId = cur.fetchone()[0]
+                    cur.execute("INSERT INTO tContractSuppliers (contractSupplierId, purchaseContractId, inn) "
+                                " VALUES (%s, %s, %s)",
+                                [contractSupplier.contractSupplierId, contractSupplier.purchaseContractId, contractSupplier.inn])
+                else:
+                    contractSupplier.contractSupplierId = rows[0][0]
+
+            cur.execute("UPDATE tContractSuppliers SET url=%s, supplierName=%s WHERE contractSupplierId=%s",
+                        [contractSupplier.url, contractSupplier.supplierName, contractSupplier.contractSupplierId])
+
+            self.conn.commit()
+            return contractSupplier
+        finally:
+            cur.close()
+
 
     def getQueryStrings(self):
         """

@@ -60,7 +60,7 @@ CREATE TABLE tPurchaseProtocol (
 	FOREIGN KEY (purchaseId) REFERENCES tPurchase ON DELETE CASCADE,
 	unique  (purchaseId , protocol_url)
 );
-
+-- select * from tPurchaseProtocol 
 
 CREATE TABLE tPurchase2Query (
 	purchaseId numeric(36) NOT NULL, 
@@ -133,7 +133,7 @@ CREATE TABLE  tPurchaseContracts (
 	winnerName VARCHAR(512), 
 	priceT VARCHAR(128) ,
 	pushishDateT VARCHAR(128) ,
-	winnerINN VARCHAR(36), 
+	--winnerINN VARCHAR(36), 
 	contractStatus VARCHAR(36), 
 	lastUpdate timestamp ,
 	_loadDate  timestamp default now(),
@@ -151,6 +151,21 @@ CREATE TABLE  tContractRawData (
 	FOREIGN KEY (purchaseContractId) REFERENCES tPurchaseContracts ON DELETE CASCADE
 );
 create index on tContractRawData (keyName);
+
+
+CREATE TABLE  tContractSuppliers (
+	contractSupplierId	numeric(36) NOT NULL, 
+	purchaseContractId 	numeric(36) NOT NULL, 
+	inn 			VARCHAR(36) ,
+	supplierName		VARCHAR(512), 
+	url	VARCHAR(512) NOT NULL, 
+	lastUpdate timestamp default now(),
+	_loadDate  timestamp default now(),
+	PRIMARY KEY (contractSupplierId),
+	FOREIGN KEY (purchaseContractId) REFERENCES tPurchaseContracts ON DELETE CASCADE, 
+	unique (purchaseContractId, inn)
+);
+
 
 CREATE TABLE  tPartner (
 	partnerId 	numeric(36) NOT NULL, 

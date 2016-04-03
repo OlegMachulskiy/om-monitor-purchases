@@ -189,23 +189,33 @@ class PurchasesPostETL:
         """
     ]
 
+    # sql_CD_1 = """
+    #     update tPurchaseContracts p
+    #     set winnerINN = (
+    #         select textValue512
+    #         from tContractRawData crd
+    #         WHERE crd.purchaseContractId=p.purchaseContractId and keyName='participantInfoTable:ИНН:' limit 1)
+    #     where winnerINN  is null
+    #     """
+    #
+    # sql_CD_2 = """
+    #     update tPurchaseContracts p
+    #     set contractStatus = (
+    #         select textValue512
+    #         from tContractRawData crd
+    #         WHERE  crd.purchaseContractId=p.purchaseContractId and keyName='Статус контракта' limit 1)
+    #     """
+
+    sql_CD_3 = """
+        update tPurchaseContracts p
+        set customerName = (
+            select textValue512
+            from tContractRawData crd
+            WHERE  crd.purchaseContractId=p.purchaseContractId and keyName='Полное наименование заказчика' limit 1)
+        """
+
     sqls1 = [
-        """
-        update tPurchaseContracts p
-        set winnerINN = (
-            select textValue512
-            from tContractRawData crd join tMapping mp
-            on crd.purchaseContractId=p.purchaseContractId and keyName='participantInfoTable:ИНН:' limit 1)
-        where winnerINN  is null
-        """
-        ,
-        """
-        update tPurchaseContracts p
-        set contractStatus = (
-            select textValue512
-            from tContractRawData crd join tMapping mp
-            on crd.purchaseContractId=p.purchaseContractId and keyName='"Статус контракта"' limit 1)
-        """
+        sql_CD_3        # ,        # sql_CD_2
         ,
         """
         insert into tPartner (partnerId, inn, category)
@@ -354,4 +364,4 @@ class PurchasesPostETL:
 
     def normalizeSpaces(self, sql):
         return sql.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ') \
-                    .replace('     ', ' ').replace('    ', ' ').replace('   ', ' ').replace('  ', ' ')
+            .replace('     ', ' ').replace('    ', ' ').replace('   ', ' ').replace('  ', ' ')

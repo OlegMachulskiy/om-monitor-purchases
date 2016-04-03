@@ -1,4 +1,5 @@
 import simplejson
+import datetime
 
 
 class Purchase():
@@ -61,7 +62,7 @@ class PurchaseFile:
 
 
 class PurchaseContract:
-    def __init__(self, purchaseId, url, purchaseContractId = None, contractNo = None, customerName = None, priceT = None, winnerName = None, pushishDateT = None):
+    def __init__(self, purchaseId, url, purchaseContractId=None, contractNo=None, customerName=None, priceT=None, winnerName=None, pushishDateT=None):
         self.purchaseId = purchaseId
         self.url = url
         self.purchaseContractId = purchaseContractId
@@ -86,6 +87,16 @@ class PurchaseContract:
         # if self.pushishDateT != None:
         #     rv += (self.pushishDateT) + '>'
         return rv.encode('utf-8')
+
+
+class ContractSupplier:
+    def __init__(self, purchaseContractId, inn, contractSupplierId=None, supplierName=None, url=None):
+        self.purchaseContractId = purchaseContractId
+        self.inn = inn
+        self.contractSupplierId = contractSupplierId
+        self.supplierName = supplierName
+        self.url = url
+        self.lastUpdate = datetime.datetime.now()
 
 
 class Partner:
