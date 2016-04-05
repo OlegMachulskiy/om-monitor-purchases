@@ -42,7 +42,11 @@ if __name__ == "__main__":
     dbSaver = DBSaver()
 
     queue = df.getScrapingEntitiesFromDBS(dbSaver)
+    print queue
     for item in queue:
         wdm = WebDrvManager(useFirefoxDriver=True)
-        df.runScrapingForEntity(dbSaver, wdm, item)
+        try:
+            df.runScrapingForEntity(dbSaver, wdm, item)
+        except Exception as ex:
+            traceback.print_exc()
         del wdm

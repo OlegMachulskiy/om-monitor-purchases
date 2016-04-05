@@ -4,6 +4,7 @@ CREATE SEQUENCE idGen START 100 ;
 
 --DROP VIEW vPurchases;
 
+DROP TABLE tContractSuppliers;
 DROP TABLE tPurchaseProtocol; 
 DROP TABLE tPurchaseBidRawData;
 DROP TABLE tPurchaseBid;
@@ -158,13 +159,14 @@ CREATE TABLE  tContractSuppliers (
 	purchaseContractId 	numeric(36) NOT NULL, 
 	inn 			VARCHAR(36) ,
 	supplierName		VARCHAR(512), 
-	url	VARCHAR(512) NOT NULL, 
+	url	VARCHAR(512), 
 	lastUpdate timestamp default now(),
 	_loadDate  timestamp default now(),
 	PRIMARY KEY (contractSupplierId),
 	FOREIGN KEY (purchaseContractId) REFERENCES tPurchaseContracts ON DELETE CASCADE, 
 	unique (purchaseContractId, inn)
 );
+-- DROP TABLE tContractSuppliers 
 
 
 CREATE TABLE  tPartner (
@@ -257,6 +259,24 @@ create table tHTTPProxyResult (
 );
 create index on tHTTPProxyResult (proxy);
 create index on tHTTPProxyResult (result);
+
+
+-- drop table tBankRegData 
+CREATE TABLE tBankRegData (
+	bankId	varchar(36) NOT NULL, 
+	dKey	varchar(128) NOT NULL, 
+	dValue	varchar(512), 
+	dValueText	text, 
+	dFrom	timestamp, 
+	dTo	timestamp, 
+	primary key (bankId, dKey, dFrom)
+);
+
+
+--create table TT (d timestamp);
+--insert into TT (d) values ('infinity');
+--select * from TT
+--drop table TT
 
 delete from tMapping;
 insert into tMapping (title, tag) values ('Наименование закупки','purchase_title');

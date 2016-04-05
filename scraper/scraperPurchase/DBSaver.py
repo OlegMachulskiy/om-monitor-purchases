@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from datetime import *
-
+import hashlib
 import psycopg2
 
 from Purchase import *
@@ -187,7 +187,6 @@ class DBSaver:
             return contractSupplier
         finally:
             cur.close()
-
 
     def getQueryStrings(self):
         """
@@ -582,5 +581,34 @@ class DBSaver:
             cur.execute("INSERT INTO tHTTPProxyResult (proxy, timeout, result) VALUES (%s, %s, %s)",
                         [proxy, timeout, result[:127]])
             self.conn.commit()
+        finally:
+            cur.close()
+
+    def updateBankRegData(self, bankId, bankData, updated):
+        cur = self.conn.cursor()
+        try:
+            for key in bankData.iterkeys():
+                cur.execute("SELECT max(dFrom) FROM tBankRegData WHERE bankId=%s AND dKey=%s ", [bankId, key])
+                rows = cur.fetchall()
+                dValueStr = bankData[key]
+                dValueText = None
+                if len(dValueStr) > 500:
+                    dValueText = dValueStr
+                    hash_md5 = hashlib.md5()
+                    hash_md5.update(unicode.encode(dValueText, "utf-8"))
+                    dValueStr = hash_md5.hexdigest()
+                if len(rows) == 0 or rows[0][0] is None:  # simply insert new row
+                    cur.execute("INSERT INTO tBankRegData (bankId, dKey, dValue, dValueText, dFrom, dTo) VALUES (%s, %s, %s, %s, %s, 'infinity') ", [bankId, key, dValueStr, dValueText, updated])
+                else:  # update existing
+                    lastStartingDate = rows[0][0]
+                    cur.execute("SELECT dValue FROM tBankRegData WHERE bankId=%s AND dKey=%s AND dFrom=%s ", [bankId, key, lastStartingDate])
+                    lastValue = cur.fetchall()[0][0]
+                    if not dValueStr == unicode(lastValue, 'utf-8'):
+                        # print "Updating ", bankId, unicode.encode(key, 'utf-8'), "from", unicode.encode(lastValue, 'utf-8'), "to", unicode.encode(dValueStr, 'utf-8')
+                        cur.execute("UPDATE tBankRegData SET dTo=%s WHERE bankId=%s AND dKey=%s AND dFrom=%s  ", [updated, bankId, key, lastStartingDate])
+                        cur.execute("INSERT INTO tBankRegData (bankId, dKey, dValue, dValueText, dFrom, dTo) VALUES (%s, %s, %s, %s, %s, 'infinity') ", [bankId, key, dValueStr, dValueText, updated])
+                    else:
+                        print "Already latest value for", bankId, key, dValueStr
+                self.conn.commit()
         finally:
             cur.close()

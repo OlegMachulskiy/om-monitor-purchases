@@ -14,7 +14,7 @@ class WebDrvManager:
             else:
                 if useProxy:
                     self.proxyxAddr = ProxyFactory().getRandomProxy()
-                    proxyParams = ["--proxy=" + prxAddr]
+                    proxyParams = ["--proxy=" + self.proxyxAddr]
 
                 # self.driver = webdriver.PhantomJS("C:/usr/phantomjs-2.1.1-windows/bin/phantomjs.exe",
                 #                                   service_args=proxyParams)

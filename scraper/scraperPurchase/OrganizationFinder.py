@@ -31,7 +31,7 @@ class OrganizationFinder:
         vOrg.url_sbis = "https://sbis.ru/" + vOrg.inn
 
         self.driver.get(vOrg.url_sbis)
-        element = WebDriverWait(self.driver, 30).until(
+        element = WebDriverWait(self.driver, 5).until(
             EC.presence_of_element_located((By.XPATH, '//div[@class="cCard__MainReq"]')))
 
         vOrg.p_name = element.find_element_by_xpath('div[@class="cCard__MainReq-Name"]/h1').text

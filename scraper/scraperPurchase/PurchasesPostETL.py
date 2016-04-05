@@ -219,8 +219,8 @@ class PurchasesPostETL:
         ,
         """
         insert into tPartner (partnerId, inn, category)
-        (select nextval('idGen'), winnerINN, 'O' from  (select distinct winnerINN from tPurchaseContracts) tpc
-        where not exists (select * from tPartner  tpd1 where tpd1.inn = tpc.winnerINN) and winnerINN is not null)
+        (select nextval('idGen'), inn, 'O' from  (select distinct inn from tContractSuppliers) tpc
+        where not exists (select * from tPartner  tpd1 where tpd1.inn = tpc.inn) and inn is not null)
         """
         ,
         """insert into tPartner (partnerId, inn, category)
